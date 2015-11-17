@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Geoff's Blog</title>
+		<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
+	</head>
+	<body>
+		<a href="/blog">
+			<h1>Geoff's Blog</h1>
+		</a>
+		<div class="log">
+			{% if login_name %}
+				{{login_name}}
+				<a href="/blog/logout">(logout)</a>
+			{% else %}
+				<a href="/blog/login">login</a>
+				|
+				<a href="/blog/signup">signup</a>
+			{% endif %}
+		</div>
+		{% block content %}
+		{% endblock %}
+	</body>
+</html>

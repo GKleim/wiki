@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+	<div class="entry">
+		<div class="entry-heading">
+			<div class="entry-subject">{{entry.subject}}</div>
+			<div class="entry-created">{{entry.created.strftime('%d %b %Y')}}</div>
+		</div>
+		<pre class="entry-body">{{entry.content}}</pre>
+	</div>
+	<br>
+	<div class="age">
+		queried {{last_query.seconds}} seconds ago
+    </div>
+{% endblock %}
