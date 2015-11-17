@@ -14,60 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import webapp2
-import jinja2
+import webapp2, jinja2
 import os
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
-import hmac
-import hashlib
-import re
-import random
-import string
-import json
-import logging
-import time
 
-secret = 'secret'
+import json
+
+from utils import *
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 									autoescape = True) #autoescape HTML
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-def valid_username(username):
-    return USER_RE.match(username)
-
-EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
-def valid_email(email):
-    return EMAIL_RE.match(email)
-
-def valid_password(password,verify):
-	return password == verify
-
-def hash_str(s):
-	return hmac.new(secret,s).hexdigest()
-
-def make_secure_val(s):
-	return '%s|%s' % (s, hash_str(s))
-
-def check_secure_val(h):
-	val = h.split('|')[0]
-	if h == make_secure_val(val):
-		return val
-
-def make_salt():
-	return ''.join(random.choice(string.letters) for x in xrange(5))
-
-def make_pw_hash(name, pw, salt = None):
-	if not salt:
-		salt = make_salt()
-	h = hashlib.sha256(name+pw+salt).hexdigest()
-	return '%s,%s' % (h, salt)
-
-def valid_pw(name, pw, h):
-	salt = h.split(',')[1]
-	return h == make_pw_hash(name, pw, salt)
 
 
 class Handler(webapp2.RequestHandler):
