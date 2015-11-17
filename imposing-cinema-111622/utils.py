@@ -7,6 +7,8 @@ import hmac, random, string
 import hashlib
 
 # Form validation functions
+# Improvements:
+#	(1) Set a required format for passwords us regex. i.e. 1 capital, 1 number, etc.
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
     return USER_RE.match(username)
@@ -20,6 +22,8 @@ def valid_password(password,verify):
 
 
 # Secure user cookie functions
+# Improvements:
+#	(1) Use bcrypt library for hashes instead of sha256. bcrypt is the most secure hash.
 SECRET = 'secret'
 
 def hash_str(s):
@@ -35,6 +39,8 @@ def check_secure_val(h):
 
 
 # Secure password handling functions
+# Improvements:
+#	(1) Use bcrypt library for hashes instead of sha256. bcrypt is the most secure hash.
 def make_salt():
 	return ''.join(random.choice(string.letters) for x in xrange(5))
 
