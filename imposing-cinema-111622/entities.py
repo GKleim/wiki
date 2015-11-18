@@ -1,6 +1,6 @@
 # entities.py
 # This .py file contains datastore entities and related functions
-# This file should only contain datastore entitiy classes and relate memcache queries.
+# This file should only contain datastore entitiy classes and related memcache queries.
 # Improvement:
 #	(1) May want to organize memchache a bit better.
 
