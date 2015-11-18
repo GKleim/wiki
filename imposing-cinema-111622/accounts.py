@@ -85,7 +85,7 @@ class Register(SignUp):
 
 			# automatically log the user in and redirect to the welcome page
 			self.login(u)
-			self.redirect('/blog/welcome')
+			self.redirect('/_welcome')
 
 
 # The Login class handles requests to the user login page
@@ -104,7 +104,7 @@ class Login(Handler):
 
 		if user:
 			self.login(user)
-			self.redirect('/blog/welcome')
+			self.redirect('/_welcome')
 		else:
 			login_error = 'invalid login'
 			self.render_login(username=username, login_error=login_error)
@@ -117,11 +117,11 @@ class Welcome(Handler):
 		if self.user:
 			self.render("welcome.html", username=self.user.username)
 		else:
-			self.redirect('/blog/signup')
+			self.redirect('/_signup')
 
 # The Logout class logs the user out
 class Logout(Handler):
 	def get(self):
 		# self.logout() is an instance method inherited from Handler class
 		self.logout()
-		self.redirect('/blog/signup')
+		self.redirect('/_signup')

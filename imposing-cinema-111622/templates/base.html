@@ -6,17 +6,17 @@
 		<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
 	</head>
 	<body>
-		<a href="/blog">
+		<a href="/">
 			<h1>Geoff's Blog</h1>
 		</a>
 		<div class="log">
 			{% if login_name %}
 				{{login_name}}
-				<a href="/blog/logout">(logout)</a>
+				<a href="/_logout">(logout)</a>
 			{% else %}
-				<a href="/blog/login">login</a>
+				<a href="/_login">login</a>
 				|
-				<a href="/blog/signup">signup</a>
+				<a href="/_signup">signup</a>
 			{% endif %}
 		</div>
 		{% block content %}

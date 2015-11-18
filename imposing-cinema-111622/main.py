@@ -30,20 +30,18 @@ from utils import *
 from handler import Handler
 from accounts import Welcome, Register, Login, Logout
 
-# BlogPage renders the blog homepage with a list of blog post (or entries)
-class BlogPage(Handler):
-	def get(self):
-		# assign a list of the top X posts to entries
-		entries = top_entries()
-
-		#select whether to render json or html
-		if self.format == 'html':
-			# last_query is the time since the last db query for the top entries
-			last_query = datetime.now() - memcache.get("time")
-
-			self.render('front.html', entries=entries, last_query=last_query)
-		else:
-			self.render_json([e.as_dict() for e in entries])
+# WikiPage renders a page in the wiki
+# Improvements:
+#   (1) List the top 10 most recent links
+#   (2) Show the title (url), and first few lines of content
+#   (3) This handler matches the regex: [a-z]+. In the future we may
+#       want to allow capitals (but convert to all lowercase for a match).
+#       Also may want to allow the minus sign '-' to represent a space. When
+#       rendering the page title, the works will be split and capitalized based
+#       on the location of the minus signs.
+class WikiPage(Handler):
+	def get(self, title):
+		self.write("WikiPage | %s" % title)
 
 
 # Permalink renders a single blog post
@@ -109,12 +107,12 @@ class Flush(Handler):
 # url to request handler mapping
 # debug = True --> show python tracebacks in the browser
 app = webapp2.WSGIApplication([
-    ('/blog/?(?:\.json)?', BlogPage),
-    ('/blog/signup', Register),
-    ('/blog/welcome', Welcome),
-    ('/blog/(\d+)/?(?:.json)?', Permalink),
+    ('/([a-z]+)/?(?:.json)?', WikiPage),
+    ('/_signup', Register),
+    ('/_welcome', Welcome),
+    ('/(\d+)/?(?:.json)?', Permalink),
     ('/blog/newpost', NewPost),
-    ('/blog/login', Login),
-    ('/blog/logout', Logout),
-    ('/blog/flush/?', Flush)
+    ('/_login/?', Login),
+    ('/_logout/?', Logout),
+    ('/_flush/?', Flush)
     ], debug=True)
