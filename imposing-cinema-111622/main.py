@@ -47,6 +47,12 @@ class WikiPage(Handler):
 		self.render('wikipage.html', content=content)
 
 	def get(self, page_tag):
+		# a blank url is equivalent to the homepage
+		if page_tag == '':
+			print 'empty'
+			self.redirect(uri_for('home'))
+			return
+
 		# query for Page entity corresponding to the page_tag
 		page = Page.by_tag(page_tag)
 
@@ -103,11 +109,16 @@ class EditPage(Handler):
 		self.redirect(uri_for('wikipage', page_tag=page_tag))
 
 
-
 # HistoryPage renders the content history for a page in the wiki
 class HistoryPage(Handler):
 	def get(self, page_tag):
 		self.write("WikiPage | history | %s" % page_tag)
+
+
+# HomePage renders the homepage of the wiki
+class HomePage(Handler):
+	def get(self):
+		self.write("WikiPage | home")
 
 
 # Permalink renders a single blog post
@@ -189,6 +200,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/_flush', handler=Flush, name='flush'),
     webapp2.Route(r'/_edit' + PAGE_RE, handler=EditPage, name='edit'),
     webapp2.Route(r'/_history' + PAGE_RE, handler=HistoryPage, name='history'),
+    webapp2.Route(r'/_home', handler=HomePage, name='home'),
     webapp2.Route(PAGE_RE, handler=WikiPage, name='wikipage')
     ], debug=True)
 	# debug = True --> show python tracebacks in the browser
