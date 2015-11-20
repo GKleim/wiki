@@ -32,8 +32,10 @@ from accounts import Welcome, Register, Login, Logout
 
 # WikiPage renders a page in the wiki
 # Improvements:
+#   Homepage ("/")
 #   (1) List the top 10 most recent links
 #   (2) Show the title (url), and first few lines of content
+#   All
 #   (3) This handler matches the regex: [a-z]+. In the future we may
 #       want to allow capitals (but convert to all lowercase for a match).
 #       Also may want to allow the minus sign '-' to represent a space. When
@@ -42,6 +44,13 @@ from accounts import Welcome, Register, Login, Logout
 class WikiPage(Handler):
 	def get(self, title):
 		self.write("WikiPage | %s" % title)
+
+
+# EditPage renders an edit interface for a page in the wiki
+# If a Page entity does not exist for url, the page entity is displayed
+class EditPage(Handler):
+	def get(self, title):
+		self.write("WikiPage | edit | %s" % title)
 
 
 # Permalink renders a single blog post
@@ -105,14 +114,22 @@ class Flush(Handler):
 
 
 # url to request handler mapping
-# debug = True --> show python tracebacks in the browser
+
+# PAGE_RE is the regex for wikipage url names
+# Improvements:
+#   (1) ignore matches with strings starting with "_". Currently the list order
+#       in the argument for app matters
+PAGE_RE = r'/((?:[a-zA-Z0-9_-]+)*)/?'
+
 app = webapp2.WSGIApplication([
-    ('/([a-z]+)/?(?:.json)?', WikiPage),
     ('/_signup', Register),
     ('/_welcome', Welcome),
     ('/(\d+)/?(?:.json)?', Permalink),
     ('/blog/newpost', NewPost),
     ('/_login/?', Login),
     ('/_logout/?', Logout),
-    ('/_flush/?', Flush)
+    ('/_flush/?', Flush),
+    ('/_edit' + PAGE_RE, EditPage),
+    (PAGE_RE, WikiPage)
     ], debug=True)
+	# debug = True --> show python tracebacks in the browser
