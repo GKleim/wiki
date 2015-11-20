@@ -25,6 +25,12 @@ class Page(db.Model):
 		# default owner is the user who wrote the first entry
 	created = db.DateTimeProperty(auto_now = True)
 
+	# The by_tag classmethod returns the page object corresponding to the tag
+	@classmethod
+	def by_tag(cls, tag):
+		p = cls.all().filter('tag =', tag).get()
+		return p
+
 
 # Content entity
 # The Content entity represents rows of versions of wiki page content
