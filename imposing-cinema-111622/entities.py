@@ -19,7 +19,7 @@ def wiki_key(name = 'default'):
 	return db.Key.from_path('wikis', name)
 
 class Page(db.Model):
-	title = db.StringProperty(required = True)
+	tag = db.StringProperty(required = True)
 		# doubles as the URL?
 	owner = db.StringProperty(required = True)
 		# default owner is the user who wrote the first entry

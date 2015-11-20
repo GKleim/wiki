@@ -29,6 +29,7 @@ from entities import *
 from utils import *
 from handler import Handler
 from accounts import Welcome, Register, Login, Logout
+from webapp2 import uri_for
 
 # WikiPage renders a page in the wiki
 # Improvements:
@@ -43,14 +44,21 @@ from accounts import Welcome, Register, Login, Logout
 #       on the location of the minus signs.
 class WikiPage(Handler):
 	def get(self, page_tag):
-		self.write("WikiPage | %s" % page_tag)
+		page_query = Page.all().ancestor(wiki_key()).filter('tag =', page_tag)
+		page = page_query.get()
+		if page:
+			self.render('wikipage.html', content=page_tag)
+			# self.write("WikiPage | %s" % page_tag)
+		else:
+			self.redirect(uri_for('edit', page_tag=page_tag))
 
 
 # EditPage renders an edit interface for a page in the wiki
 # If a Page entity does not exist for url, the page entity is displayed
 class EditPage(Handler):
 	def get(self, page_tag):
-		self.write("WikiPage | edit | %s" % page_tag)
+		self.render('editpage.html', content=page_tag)
+		# self.write("WikiPage | edit | %s" % page_tag)
 
 
 # HistoryPage renders the content history for a page in the wiki
