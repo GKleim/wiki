@@ -9,6 +9,88 @@ from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from utils import make_pw_hash, valid_pw
 
+# Content entity
+# The Content entity represents rows of versions of wiki page content
+
+# The wiki_key function returns the parent key for wikis.
+# Having a parent key guarantees consistency when querying immediately after creation (?)
+# Improvements:
+#   (1) JSON?
+# Organization:
+#   -- wikipages are organized with the following structure:
+#      /wikis
+#         /example-page-1
+#            Content entity: example-page-1 revision 0 content
+#            Content entity: example-page-1 revision 1 content
+#            etc.
+#         /example-page-2
+#            Content entity: example-page-2 revision 0 content
+#            Content entity: example-page-2 revision 1 content
+#            etc.
+#         /etc.
+#   -- the content of wikipage "A" is stored as a collection of Content entities at path /pages/A
+#   -- the most recent Content entity is displayed for a given url (store only 10 most recent?)
+def wiki_key(name = 'default'):
+	return db.Key.from_path('wikis', name)
+
+# The wiki_key function generates the key for Content with subject = "subject"
+def subject_key(subject, name = 'default'):
+	return db.Key.from_path(subject, name, parent=page_key())
+
+class Content(db.Model):
+	content = db.TextProperty(required = True)
+		# Text property stores up to 1 MB and cannot be indexed
+	author = db.StringProperty(required = True)
+		# stores User.username (you must be a registered user to generate content) 
+	modified = db.DateTimeProperty(auto_now = True)
+		# If only X most recent Content entities are saved, how do I store the date of creation for
+		# the page?
+
+
+# User entity
+# The User entity represents rows of user accounts
+
+# The users_key function returns the parent key for users.
+# Having a parent key guarantees consistency when querying immediately after creation (?)
+def users_key(group = 'default'):
+	return db.Key.from_path('users', group)
+
+class User(db.Model):
+	username = db.StringProperty(required = True)
+	password = db.StringProperty(required = True)
+	email = db.StringProperty()
+	joined = db.DateTimeProperty(auto_now_add = True)
+
+	# NOTE: @classmethods are methods called on classes, not instances of classes
+
+	# The by_id classmethod returns the user object corresponding to the user id (uid)
+	@classmethod
+	def by_id(cls, uid):
+		return cls.get_by_id(uid, parent = users_key())
+
+	# The by_name classmethod returns the user object corresponding to the username
+	@classmethod
+	def by_name(cls, username):
+		u = cls.all().filter('username =', username).get()
+		return u
+
+	# The register classmethod creates a new User object and handles password hashing
+	@classmethod
+	def register(cls, username, password, email = None):
+		password = make_pw_hash(username, password)
+		return cls(parent = users_key(),
+					username = username,
+					password = password,
+					email = email)
+
+	# The login classmethod signs the user into the website
+	@classmethod
+	def login(cls, username, password):
+		u = cls.by_name(username)
+		if u and valid_pw(username, password, u.password):
+			return u
+
+
 # Post entity
 # The Post entity represents rows of blog posts (sometimes called entries)
 
@@ -71,47 +153,3 @@ def get_entry(entry_id):
 		# A "time" key is created for each entry for display on webpage
 		memcache.set('time|%s' % entry_id, datetime.now())
 	return entry
-
-
-# User entity
-# The User entity represents rows of user accounts
-
-# The users_key function returns the parent key for users.
-# Having a parent key guarantees consistency when querying immediately after creation (?)
-def users_key(group = 'default'):
-	return db.Key.from_path('users', group)
-
-class User(db.Model):
-	username = db.StringProperty(required = True)
-	password = db.StringProperty(required = True)
-	email = db.StringProperty()
-	joined = db.DateTimeProperty(auto_now_add = True)
-
-	# NOTE: @classmethods are methods called on classes, not instances of classes
-
-	# The by_id classmethod returns the user object corresponding to the user id (uid)
-	@classmethod
-	def by_id(cls, uid):
-		return cls.get_by_id(uid, parent = users_key())
-
-	# The by_name classmethod returns the user object corresponding to the username
-	@classmethod
-	def by_name(cls, username):
-		u = cls.all().filter('username =', username).get()
-		return u
-
-	# The register classmethod creates a new User object and handles password hashing
-	@classmethod
-	def register(cls, username, password, email = None):
-		password = make_pw_hash(username, password)
-		return cls(parent = users_key(),
-					username = username,
-					password = password,
-					email = email)
-
-	# The login classmethod signs the user into the website
-	@classmethod
-	def login(cls, username, password):
-		u = cls.by_name(username)
-		if u and valid_pw(username, password, u.password):
-			return u
