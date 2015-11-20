@@ -43,6 +43,9 @@ from webapp2 import uri_for
 #       rendering the page title, the works will be split and capitalized based
 #       on the location of the minus signs.
 class WikiPage(Handler):
+	def render_wikipage(self, content=''):
+		self.render('wikipage.html', content=content)
+
 	def get(self, page_tag):
 		# query for Page entity corresponding to the page_tag
 		page = Page.by_tag(page_tag)
@@ -50,7 +53,7 @@ class WikiPage(Handler):
 		# if there is a matching page in the database, return the page
 		if page:
 			content = Content.all().ancestor(page).order("-created").fetch(1)
-			self.render('wikipage.html', content=content[0].content)
+			self.render_wikipage(content=content[0].content)
 			# self.write("WikiPage | %s" % page_tag)
 		# if the there is not a matching page in the database, go to edit page
 		else:
@@ -60,11 +63,22 @@ class WikiPage(Handler):
 # EditPage renders an edit interface for a page in the wiki
 # If a Page entity does not exist for url, the page entity is displayed
 class EditPage(Handler):
+	def render_editpage(self, page_tag='', content=''):
+		if content == '':
+			content = 'The requested page does not exist.\n'
+			content += 'To create the page, enter in this text field and clicke "save".'
+		self.render('editpage.html', page_tag=page_tag, content=content)
+
 	def get(self, page_tag):
 		# if a user is logged in, allow the page to be edited
 		if self.user:
-			self.render('editpage.html', page_tag=page_tag, content=page_tag)
-			# self.write("WikiPage | edit | %s" % page_tag)
+			page =Page.by_tag(page_tag)
+			if page:
+				content = Content.all().ancestor(page).order("-created").fetch(1)
+				self.render_editpage(page_tag=page_tag, content=content[0].content)
+				# self.write("WikiPage | edit | %s" % page_tag)
+			else:
+				self.render_editpage(page_tag=page_tag)
 		else:
 			self.redirect(uri_for('login'))
 
