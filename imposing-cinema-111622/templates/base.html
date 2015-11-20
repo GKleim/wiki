@@ -6,17 +6,17 @@
 		<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
 	</head>
 	<body>
-		<a href="/">
-			<h1>Geoff's Blog</h1>
+		<a href="{{uri_for('wikipage', page_tag='')}}">
+			<h1>Geoff's Wiki</h1>
 		</a>
 		<div class="log">
 			{% if login_name %}
 				{{login_name}}
-				<a href="/_logout">(logout)</a>
+				<a href="{{uri_for('logout')}}">(logout)</a>
 			{% else %}
-				<a href="/_login">login</a>
+				<a href="{{uri_for('login')}}">login</a>
 				|
-				<a href="/_signup">signup</a>
+				<a href="{{uri_for('signup')}}">signup</a>
 			{% endif %}
 		</div>
 		{% block content %}

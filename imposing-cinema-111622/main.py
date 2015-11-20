@@ -42,15 +42,15 @@ from accounts import Welcome, Register, Login, Logout
 #       rendering the page title, the works will be split and capitalized based
 #       on the location of the minus signs.
 class WikiPage(Handler):
-	def get(self, title):
-		self.write("WikiPage | %s" % title)
+	def get(self, page_tag):
+		self.write("WikiPage | %s" % page_tag)
 
 
 # EditPage renders an edit interface for a page in the wiki
 # If a Page entity does not exist for url, the page entity is displayed
 class EditPage(Handler):
-	def get(self, title):
-		self.write("WikiPage | edit | %s" % title)
+	def get(self, page_tag):
+		self.write("WikiPage | edit | %s" % page_tag)
 
 
 # Permalink renders a single blog post
@@ -119,17 +119,18 @@ class Flush(Handler):
 # Improvements:
 #   (1) ignore matches with strings starting with "_". Currently the list order
 #       in the argument for app matters
-PAGE_RE = r'/((?:[a-zA-Z0-9_-]+)*)/?'
+#   (2) since I added extended routes, "/?" won't work for adding an option slash
+PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
 
 app = webapp2.WSGIApplication([
-    ('/_signup', Register),
-    ('/_welcome', Welcome),
-    ('/(\d+)/?(?:.json)?', Permalink),
-    ('/blog/newpost', NewPost),
-    ('/_login/?', Login),
-    ('/_logout/?', Logout),
-    ('/_flush/?', Flush),
-    ('/_edit' + PAGE_RE, EditPage),
-    (PAGE_RE, WikiPage)
+    webapp2.Route(r'/_signup', handler=Register, name='signup'),
+    webapp2.Route(r'/_welcome', handler=Welcome, name='welcome'),
+    webapp2.Route(r'/(\d+)/?(?:.json)?', handler=Permalink, name='permalink'),
+    webapp2.Route(r'/blog/newpost', handler=NewPost, name='newpost'),
+    webapp2.Route(r'/_login', handler=Login, name='login'),
+    webapp2.Route(r'/_logout', handler=Logout, name='logout'),
+    webapp2.Route(r'/_flush', handler=Flush, name='flush'),
+    webapp2.Route(r'/_edit' + PAGE_RE, handler=EditPage, name='edit'),
+    webapp2.Route(PAGE_RE, handler=WikiPage, name='wikipage')
     ], debug=True)
 	# debug = True --> show python tracebacks in the browser

@@ -5,6 +5,7 @@
 from handler import Handler
 from utils import *
 from entities import User
+from webapp2 import uri_for
 
 # The SignUp class is the base class for register/sign up classes.
 # The SignUp handler acts as the signup form input validation
@@ -85,7 +86,7 @@ class Register(SignUp):
 
 			# automatically log the user in and redirect to the welcome page
 			self.login(u)
-			self.redirect('/_welcome')
+			self.redirect(uri_for('welcome'))
 
 
 # The Login class handles requests to the user login page
@@ -104,7 +105,7 @@ class Login(Handler):
 
 		if user:
 			self.login(user)
-			self.redirect('/_welcome')
+			self.redirect(uri_for('welcome'))
 		else:
 			login_error = 'invalid login'
 			self.render_login(username=username, login_error=login_error)
@@ -117,7 +118,7 @@ class Welcome(Handler):
 		if self.user:
 			self.render("welcome.html", username=self.user.username)
 		else:
-			self.redirect('/_signup')
+			self.redirect(uri_for('signup'))
 
 # The Logout class logs the user out
 class Logout(Handler):

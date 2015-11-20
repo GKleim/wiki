@@ -19,6 +19,11 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 									autoescape = True)
 
+# Set global values so the webapp2 uri_for() function can be used in templates
+jinja_env.globals = {
+    'uri_for': webapp2.uri_for
+}
+
 
 # The Handler class is the base class for all request handlers. It adds a layer
 # of abstraction to certain routine actions
