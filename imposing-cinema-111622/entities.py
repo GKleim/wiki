@@ -9,42 +9,55 @@ from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from utils import make_pw_hash, valid_pw
 
-# Content entity
-# The Content entity represents rows of versions of wiki page content
+
+# Page entity
+# The Page entity represents rows of versions of wiki page content
 
 # The wiki_key function returns the parent key for wikis.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
+def wiki_key(name = 'default'):
+	return db.Key.from_path('wikis', name)
+
+class Page(db.Model):
+	title = db.StringProperty(required = True)
+		# doubles as the URL?
+	owner = db.StringProperty(required = True)
+		# default owner is the user who wrote the first entry
+	created = db.DateTimeProperty(auto_now = True)
+
+
+# Content entity
+# The Content entity represents rows of versions of wiki page content
+
+# A Page entity will be the parent of 1 or more Content entities. Only the most recently
+# created content entity is displayed for the page. A collection of content entities are
+# a history of the changes made to the content displayed at the Page entity URL.
+
+# Having a parent key guarantees consistency when querying immediately after creation (?)
 # Improvements:
 #   (1) JSON?
+#   (2) Review process for Content changes. Changes are sent to Page.owner for review.
 # Organization:
 #   -- wikipages are organized with the following structure:
 #      /wikis
-#         /example-page-1
+#         /example-page-1 (Page entity)
 #            Content entity: example-page-1 revision 0 content
 #            Content entity: example-page-1 revision 1 content
 #            etc.
-#         /example-page-2
+#         /example-page-2 (Page entity)
 #            Content entity: example-page-2 revision 0 content
 #            Content entity: example-page-2 revision 1 content
 #            etc.
 #         /etc.
-#   -- the content of wikipage "A" is stored as a collection of Content entities at path /pages/A
+#   -- the content of wikipage "A" is stored as a collection of Content entities at path
+#      /wikis/Page entity/
 #   -- the most recent Content entity is displayed for a given url (store only 10 most recent?)
-def wiki_key(name = 'default'):
-	return db.Key.from_path('wikis', name)
-
-# The wiki_key function generates the key for Content with subject = "subject"
-def subject_key(subject, name = 'default'):
-	return db.Key.from_path(subject, name, parent=page_key())
-
 class Content(db.Model):
 	content = db.TextProperty(required = True)
 		# Text property stores up to 1 MB and cannot be indexed
 	author = db.StringProperty(required = True)
 		# stores User.username (you must be a registered user to generate content) 
-	modified = db.DateTimeProperty(auto_now = True)
-		# If only X most recent Content entities are saved, how do I store the date of creation for
-		# the page?
+	created = db.DateTimeProperty(auto_now = True)
 
 
 # User entity
