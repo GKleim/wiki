@@ -2,7 +2,7 @@
 
 <html>
 	<head>
-		<title>Geoff's Blog</title>
+		<title>Geoff's Wiki</title>
 		<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
 	</head>
 	<body>
@@ -10,6 +10,11 @@
 			<h1>Geoff's Wiki</h1>
 		</a>
 		<div class="log">
+			{% if login_name %}
+				<a href="{{uri_for('edit', page_tag='it-worked')}}">edit</a>
+				|
+			{% endif %}
+			<a href="{{uri_for('history', page_tag='it-worked')}}">history</a>
 			{% if login_name %}
 				{{login_name}}
 				<a href="{{uri_for('logout')}}">(logout)</a>

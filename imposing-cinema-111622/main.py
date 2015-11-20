@@ -53,6 +53,12 @@ class EditPage(Handler):
 		self.write("WikiPage | edit | %s" % page_tag)
 
 
+# HistoryPage renders the content history for a page in the wiki
+class HistoryPage(Handler):
+	def get(self, page_tag):
+		self.write("WikiPage | history | %s" % page_tag)
+
+
 # Permalink renders a single blog post
 # Improvements:
 #   (1) May want to abstract out the memecache gets
@@ -131,6 +137,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route(r'/_logout', handler=Logout, name='logout'),
     webapp2.Route(r'/_flush', handler=Flush, name='flush'),
     webapp2.Route(r'/_edit' + PAGE_RE, handler=EditPage, name='edit'),
+    webapp2.Route(r'/_history' + PAGE_RE, handler=HistoryPage, name='history'),
     webapp2.Route(PAGE_RE, handler=WikiPage, name='wikipage')
     ], debug=True)
 	# debug = True --> show python tracebacks in the browser

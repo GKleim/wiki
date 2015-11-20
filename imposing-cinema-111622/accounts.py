@@ -125,4 +125,4 @@ class Logout(Handler):
 	def get(self):
 		# self.logout() is an instance method inherited from Handler class
 		self.logout()
-		self.redirect('/_signup')
+		self.redirect(uri_for('signup'))
