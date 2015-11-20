@@ -44,11 +44,14 @@ from webapp2 import uri_for
 #       on the location of the minus signs.
 class WikiPage(Handler):
 	def get(self, page_tag):
-		page_query = Page.all().ancestor(wiki_key()).filter('tag =', page_tag)
-		page = page_query.get()
+		# query for Page entity corresponding to the page_tag
+		page = Page.by_tag(page_tag)
+
+		# if there is a matching page in the database, return the page
 		if page:
 			self.render('wikipage.html', content=page_tag)
 			# self.write("WikiPage | %s" % page_tag)
+		# if the there is not a matching page in the database, go to edit page
 		else:
 			self.redirect(uri_for('edit', page_tag=page_tag))
 
@@ -57,16 +60,32 @@ class WikiPage(Handler):
 # If a Page entity does not exist for url, the page entity is displayed
 class EditPage(Handler):
 	def get(self, page_tag):
-		self.render('editpage.html', page_tag=page_tag, content=page_tag)
-		# self.write("WikiPage | edit | %s" % page_tag)
+		# if a user is logged in, allow the page to be edited
+		if self.user:
+			self.render('editpage.html', page_tag=page_tag, content=page_tag)
+			# self.write("WikiPage | edit | %s" % page_tag)
+		else:
+			self.redirect(uri_for('login'))
 
 	def post(self, page_tag):
 		user_content = self.request.get('content')
 
-		self.redirect(uri_for('edit', page_tag=page_tag))
+		# query for Page entity correseponding to the page_tag (DRY)
+		p = Page.by_tag(page_tag)
 
+		# if there is no matching page, create the page.
+		# This code is in the post method so pages only get created if the user
+		# has created content for the page.
+		if not p:
+			p = Page(tag=page_tag, owner=self.user.username, parent=wiki_key())
+			p.put()
 
+		# create content entity with parent p
+		c = Content(content=user_content, author=self.user.username, parent=p)
+		c.put()
 
+		# render the page with the new content
+		self.redirect(uri_for('wikipage', page_tag=page_tag))
 
 
 
