@@ -49,7 +49,8 @@ class WikiPage(Handler):
 
 		# if there is a matching page in the database, return the page
 		if page:
-			self.render('wikipage.html', content=page_tag)
+			content = Content.all().ancestor(page).order("-created").fetch(1)
+			self.render('wikipage.html', content=content[0].content)
 			# self.write("WikiPage | %s" % page_tag)
 		# if the there is not a matching page in the database, go to edit page
 		else:
