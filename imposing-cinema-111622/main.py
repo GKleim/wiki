@@ -57,8 +57,17 @@ class WikiPage(Handler):
 # If a Page entity does not exist for url, the page entity is displayed
 class EditPage(Handler):
 	def get(self, page_tag):
-		self.render('editpage.html', content=page_tag)
+		self.render('editpage.html', page_tag=page_tag, content=page_tag)
 		# self.write("WikiPage | edit | %s" % page_tag)
+
+	def post(self, page_tag):
+		user_content = self.request.get('content')
+
+		self.redirect(uri_for('edit', page_tag=page_tag))
+
+
+
+
 
 
 # HistoryPage renders the content history for a page in the wiki
