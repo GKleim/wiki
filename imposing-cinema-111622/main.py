@@ -43,8 +43,8 @@ from webapp2 import uri_for
 #       rendering the page title, the works will be split and capitalized based
 #       on the location of the minus signs.
 class WikiPage(Handler):
-	def render_wikipage(self, content=''):
-		self.render('wikipage.html', content=content)
+	def render_wikipage(self, content='', page_tag=''):
+		self.render('wikipage.html', content=content, page_tag=page_tag)
 
 	def get(self, page_tag):
 		# a blank url is equivalent to the homepage
@@ -59,7 +59,7 @@ class WikiPage(Handler):
 		# if there is a matching page in the database, return the page
 		if page:
 			content = get_content(page)
-			self.render_wikipage(content=content.content)
+			self.render_wikipage(content=content.content, page_tag=page_tag)
 			# self.write("WikiPage | %s" % page_tag)
 		# if the there is not a matching page in the database, go to edit page
 		else:

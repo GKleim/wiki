@@ -11,10 +11,10 @@
 		</a>
 		<div class="log">
 			{% if login_name %}
-				<a href="{{uri_for('edit', page_tag='')}}">edit</a>
+				<a href="{{uri_for('edit', page_tag=page_tag)}}">edit</a>
 				|
 			{% endif %}
-			<a href="{{uri_for('history', page_tag='')}}">history</a>
+			<a href="{{uri_for('history', page_tag=page_tag)}}">history</a>
 			{% if login_name %}
 				{{login_name}}
 				<a href="{{uri_for('logout')}}">(logout)</a>
