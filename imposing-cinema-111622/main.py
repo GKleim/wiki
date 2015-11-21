@@ -58,8 +58,8 @@ class WikiPage(Handler):
 
 		# if there is a matching page in the database, return the page
 		if page:
-			content = Content.all().ancestor(page).order("-created").fetch(1)
-			self.render_wikipage(content=content[0].content)
+			content = get_content(page)
+			self.render_wikipage(content=content.content)
 			# self.write("WikiPage | %s" % page_tag)
 		# if the there is not a matching page in the database, go to edit page
 		else:
@@ -78,7 +78,7 @@ class EditPage(Handler):
 	def get(self, page_tag):
 		# if a user is logged in, allow the page to be edited
 		if self.user:
-			page =Page.by_tag(page_tag)
+			page = Page.by_tag(page_tag)
 			if page:
 				content = get_content(page)
 				self.render_editpage(page_tag=page_tag, content=content.content)
@@ -98,12 +98,16 @@ class EditPage(Handler):
 		# This code is in the post method so pages only get created if the user
 		# has created content for the page.
 		if not p:
-			p = Page(tag=page_tag, owner=self.user.username, parent=wiki_key())
+			p = Page(tag=page_tag, owner=self.user.username,
+				     edits = 0, parent=wiki_key())
 			p.put()
 
 		# create content entity with parent p
 		c = Content(content=user_content, author=self.user.username, parent=p)
 		c.put()
+
+		p.edits += 1
+		p.put()
 
 		# render the page with the new content
 		self.redirect(uri_for('wikipage', page_tag=page_tag))
@@ -117,12 +121,13 @@ class HistoryPage(Handler):
 
 # HomePage renders the homepage of the wiki
 class HomePage(Handler):
-	def render_homepage(self, newest_pages=[], updated_pages=''):
+	def render_homepage(self, newest_pages=[], updated_pages=[]):
 		self.render('home.html', newest_pages=newest_pages,
 			                     updated_pages=updated_pages)
 
 	def get(self):
-		self.render_homepage(newest_pages=newest_pages())
+		self.render_homepage(newest_pages=newest_pages(),
+			                 updated_pages=newest_page_updates())
 		# self.write("WikiPage | home")
 
 

@@ -29,6 +29,8 @@ class Page(db.Model):
 	owner = db.StringProperty(required = True)
 		# default owner is the user who wrote the first entry
 	created = db.DateTimeProperty(auto_now_add = True)
+	modified = db.DateTimeProperty(auto_now = True)
+	edits = db.IntegerProperty(required = True)
 
 	# The by_tag classmethod returns the page object corresponding to the tag
 	@classmethod
@@ -66,8 +68,13 @@ class Page(db.Model):
 
 # get_content returns the most recent content for the page (content to be displayed)
 def get_content(page):
-	content = Content.all().ancestor(page).order("-created").fetch(1)
-	return content[0]
+	content = Content.all().ancestor(page).order("-created").get()
+	return content
+
+def newest_page_updates():
+	pages = Page.all().ancestor(wiki_key()).order("-modified").run(limit=10)
+	pages = list(pages)
+	return pages
 
 class Content(db.Model):
 	content = db.TextProperty(required = True)
