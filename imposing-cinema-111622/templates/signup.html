@@ -1,27 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-	<form method="post">
-		<h2>signup</h2>
-		<label>
-			<div>username</div>
-			<input type="text" name="username" value="{{username}}">
-			<span class="error">{{username_error}}</span>
-		</label>
-		<label>
-			<div>password</div>
-			<input type="password" name="password">
-			<span class="error">{{password_error}}</span>
-		</label>
-		<label>
-			<div>verify password</div>
-			<input type="password" name="verify">
-			<span class="error">{{verify_error}}</span>
-		</label>
-		<label>
-			<div>email (optional)</div>
-			<input type="text" name="email" value="{{email}}">
-			<span class="error">{{email_error}}</span>
-		</label>
-		<input type="submit">
-	</form>
+        <form class="form-signin" method="post">
+        	<h2 class="form-signin-heading">
+        		Register with us
+        	</h2>
+        
+        	<label for="inputUsername" class="sr-only">
+        		Username
+        	</label>
+        	<input type="text" name="username" class="form-control" placeholder="Username" value="{{username}}" required autofocus>
+        	<span class="error">
+        		{{username_error}}
+        	</span>
+        
+        	<label for="inputPassword" class="sr-only">
+        		Password
+        	</label>
+        	<input type="password" name="password" class="form-control" placeholder="Password" required>
+        	<span class="error">
+        		{{password_error}}
+        	</span>
+        
+	        <label for="inputVerifyPassword" class="sr-only">
+	        	Verify Password
+	        </label>
+	        <input type="password" name="verify" class="form-control" placeholder="Verify password" required>
+	        <span class="error">
+	        	{{verify_error}}
+	        </span>
+
+        	<label for="inputEmail" class="sr-only">
+        		Email (optional)
+        	</label>
+        	<input type="text" name="email" class="form-control" placeholder="Email (optional)">
+        	<span class="error">
+        		{{email_error}}
+        	</span>
+
+        	<div class="checkbox">
+	          	<label>
+	            	<input type="checkbox" value="remember-me"> Remember me
+	          	</label>
+	        </div>
+
+        	<button class="btn btn-lg btn-primary btn-block" type="submit">
+        		Register
+        	</button>
+        </form>
 {% endblock %}

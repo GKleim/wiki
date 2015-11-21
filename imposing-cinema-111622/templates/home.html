@@ -1,25 +1,37 @@
-{% extends "base.html" %}
-{% block content %}
-	<h1>10 Newest Pages</h1>
-	{% for p in newest_pages %}
-		<div class="entry">
-			<div class="entry-heading">
-				<div class="entry-subject">
-					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
-				</div>
-				<div class="entry-created">{{p.created.strftime('%c')}}</div>
-			</div>
-		</div>
-	{% endfor %}
-	<h1>10 Recently Updated Pages</h1>
-	{% for p in updated_pages %}
-		<div class="entry">
-			<div class="entry-heading">
-				<div class="entry-subject">
-					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
-				</div>
-				<div class="entry-created">{{p.modified.strftime('%c')}}</div>
-			</div>
-		</div>
-	{% endfor %}
+{% extends "wrapper.html" %}
+{% block wrapper %}
+
+	<div class="blog-header">
+        <h1 class="blog-title">Geoff's Wiki</h1>
+        <p class="lead blog-description">
+        	The "information" wiki.
+        </p>
+    </div>
+
+    <div class="row">
+		<div class="col-sm-8 blog-main">
+			<h2>10 Newest Pages</h2>
+			
+			<ul>
+			{% for p in newest_pages %}
+				<li>
+            		<p><a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
+           		 	<p class="blog-post-meta">created: {{p.created.strftime('%c')}}</p>
+          		</li>
+          	{% endfor %}
+          	</ul>
+
+          	<h2>10 Recently Updated Pages</h2>
+			
+			<ul>
+			{% for p in updated_pages %}
+				<li>
+            		<p><a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
+           		 	<p class="blog-post-meta">updated: {{p.created.strftime('%c')}}</p>
+          		</li>
+          	{% endfor %}
+          	</ul>
+
+        </div> 
+
 {% endblock %}
