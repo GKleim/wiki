@@ -22,7 +22,7 @@
 #       into other .py files
 
 import webapp2, json
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from entities import *
@@ -71,7 +71,7 @@ class EditPage(Handler):
 	def render_editpage(self, page_tag='', content=''):
 		if content == '':
 			content = 'The requested page does not exist.\n'
-			content += 'To create the page, enter in this text field and clicke "save".'
+			content += 'To create the page, enter in this text field and click "save".'
 		self.render('editpage.html', page_tag=page_tag, content=content)
 
 	def get(self, page_tag):
@@ -102,7 +102,7 @@ class EditPage(Handler):
 			p.put()
 
 		# create content entity with parent p
-		c = Content(content=user_content, author=self.user.username, parent=p)
+		c = Content(content=user_content, author=self.user.username, parent=p.key)
 		c.put()
 
 		p.edits += 1
@@ -176,7 +176,7 @@ class NewPost(Handler):
 			# the db.
 			top_entries(True)
 
-			self.redirect('/blog/%s' % e.key().id())
+			self.redirect('/blog/%s' % e.key.id())
 		else:
 			error = 'we need both a subject and content!'
 			self.render_newpost(error=error, subject=subject, content=content)

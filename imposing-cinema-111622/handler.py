@@ -2,7 +2,7 @@
 # This .py file contains a base handler class with helpful methods
 # This file should only contain the Handler base class and associated functions
 
-import webapp2, jinja2
+import webapp2, jinja2, json
 import os
 from utils import make_secure_val, check_secure_val
 from entities import User
@@ -80,7 +80,7 @@ class Handler(webapp2.RequestHandler):
 
     # log "user" in my setting the user_id cookie in the browser
     def login(self, user):
-    	self.set_secure_cookie('user_id', str(user.key().id()))   	
+    	self.set_secure_cookie('user_id', str(user.key.id()))   	
 
     # log out the current user by setting the user_id cookie to nothing
     def logout(self):

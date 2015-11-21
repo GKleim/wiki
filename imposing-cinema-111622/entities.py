@@ -4,7 +4,7 @@
 # Improvement:
 #	(1) May want to organize memchache a bit better.
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from utils import make_pw_hash, valid_pw
@@ -16,26 +16,26 @@ from utils import make_pw_hash, valid_pw
 # The wiki_key function returns the parent key for wikis.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
 def wiki_key(name = 'default'):
-	return db.Key.from_path('wikis', name)
+	return ndb.Key('wikis', name)
 
 def newest_pages():
-	pages = Page.all().ancestor(wiki_key()).order("-created").run(limit=10)
+	pages = Page.query(ancestor=wiki_key()).order(-Page.created).fetch(10)
 	pages = list(pages)
 	return pages
 
-class Page(db.Model):
-	tag = db.StringProperty(required = True)
+class Page(ndb.Model):
+	tag = ndb.StringProperty(required = True)
 		# doubles as the URL?
-	owner = db.StringProperty(required = True)
+	owner = ndb.StringProperty(required = True)
 		# default owner is the user who wrote the first entry
-	created = db.DateTimeProperty(auto_now_add = True)
-	modified = db.DateTimeProperty(auto_now = True)
-	edits = db.IntegerProperty(required = True)
+	created = ndb.DateTimeProperty(auto_now_add = True)
+	modified = ndb.DateTimeProperty(auto_now = True)
+	edits = ndb.IntegerProperty(required = True)
 
 	# The by_tag classmethod returns the page object corresponding to the tag
 	@classmethod
 	def by_tag(cls, tag):
-		p = cls.all().filter('tag =', tag).get()
+		p = cls.query(cls.tag==tag).get()
 		return p
 
 
@@ -68,20 +68,20 @@ class Page(db.Model):
 
 # get_content returns the most recent content for the page (content to be displayed)
 def get_content(page):
-	content = Content.all().ancestor(page).order("-created").get()
+	content = Content.query(ancestor=page.key).order(-Content.created).get()
 	return content
 
 def newest_page_updates():
-	pages = Page.all().ancestor(wiki_key()).order("-modified").run(limit=10)
+	pages = Page.query(ancestor=wiki_key()).order(-Page.modified).fetch(10)
 	pages = list(pages)
 	return pages
 
-class Content(db.Model):
-	content = db.TextProperty(required = True)
+class Content(ndb.Model):
+	content = ndb.TextProperty(required = True)
 		# Text property stores up to 1 MB and cannot be indexed
-	author = db.StringProperty(required = True)
+	author = ndb.StringProperty(required = True)
 		# stores User.username (you must be a registered user to generate content) 
-	created = db.DateTimeProperty(auto_now_add = True)
+	created = ndb.DateTimeProperty(auto_now_add = True)
 
 
 # User entity
@@ -90,25 +90,25 @@ class Content(db.Model):
 # The users_key function returns the parent key for users.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
 def users_key(group = 'default'):
-	return db.Key.from_path('users', group)
+	return ndb.Key('users', group)
 
-class User(db.Model):
-	username = db.StringProperty(required = True)
-	password = db.StringProperty(required = True)
-	email = db.StringProperty()
-	joined = db.DateTimeProperty(auto_now_add = True)
+class User(ndb.Model):
+	username = ndb.StringProperty(required = True)
+	password = ndb.StringProperty(required = True)
+	email = ndb.StringProperty()
+	joined = ndb.DateTimeProperty(auto_now_add = True)
 
 	# NOTE: @classmethods are methods called on classes, not instances of classes
 
 	# The by_id classmethod returns the user object corresponding to the user id (uid)
 	@classmethod
 	def by_id(cls, uid):
-		return cls.get_by_id(uid, parent = users_key())
+		return cls.get_by_id(uid, parent=users_key())
 
 	# The by_name classmethod returns the user object corresponding to the username
 	@classmethod
 	def by_name(cls, username):
-		u = cls.all().filter('username =', username).get()
+		u = cls.query(cls.username==username).get()
 		return u
 
 	# The register classmethod creates a new User object and handles password hashing
@@ -134,13 +134,13 @@ class User(db.Model):
 # The blog_key function returns the parent key for posts.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
 def blog_key(name = 'default'):
-	return db.Key.from_path('blogs', name)
+	return ndb.Key('blogs', name)
 
-class Post(db.Model):
-	subject = db.StringProperty(required = True)
-	content = db.TextProperty(required = True)
-	created = db.DateTimeProperty(auto_now_add = True)
-	modified = db.DateTimeProperty(auto_now = True)
+class Post(ndb.Model):
+	subject = ndb.StringProperty(required = True)
+	content = ndb.TextProperty(required = True)
+	created = ndb.DateTimeProperty(auto_now_add = True)
+	modified = ndb.DateTimeProperty(auto_now = True)
 
 	# The as_dict function converts the Post object into a dictionary to be jsonified
 	def as_dict(self):
@@ -164,7 +164,7 @@ def top_entries(update = False):
 		print 'DB Query'
 
 		#database query for posts
-		entries = Post.all().ancestor(blog_key()).order("-created").run(limit=10)
+		entries = Post.query(ancestor=blog_key()).order(-Post.created).fetch(10)
 
 		#db is not queried until something is ran on entries. Make a list out of the
 		#query to force the query to run. This prevents potentially running the query
