@@ -22,7 +22,7 @@
 #       into other .py files
 
 import webapp2, json
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from entities import *
@@ -92,7 +92,7 @@ class NewPost(Handler):
 			# the db.
 			top_entries(True)
 
-			self.redirect('/blog/%s' % e.key().id())
+			self.redirect('/blog/%s' % e.key.id())
 		else:
 			error = 'we need both a subject and content!'
 			self.render_newpost(error=error, subject=subject, content=content)

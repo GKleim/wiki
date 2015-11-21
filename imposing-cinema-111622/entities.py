@@ -4,7 +4,7 @@
 # Improvement:
 #	(1) May want to organize memchache a bit better.
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from utils import make_pw_hash, valid_pw
@@ -15,13 +15,13 @@ from utils import make_pw_hash, valid_pw
 # The blog_key function returns the parent key for posts.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
 def blog_key(name = 'default'):
-	return db.Key.from_path('blogs', name)
+	return ndb.Key('blogs', name)
 
-class Post(db.Model):
-	subject = db.StringProperty(required = True)
-	content = db.TextProperty(required = True)
-	created = db.DateTimeProperty(auto_now_add = True)
-	modified = db.DateTimeProperty(auto_now = True)
+class Post(ndb.Model):
+	subject = ndb.StringProperty(required = True)
+	content = ndb.TextProperty(required = True)
+	created = ndb.DateTimeProperty(auto_now_add = True)
+	modified = ndb.DateTimeProperty(auto_now = True)
 
 	# The as_dict function converts the Post object into a dictionary to be jsonified
 	def as_dict(self):
@@ -45,7 +45,7 @@ def top_entries(update = False):
 		print 'DB Query'
 
 		#database query for posts
-		entries = Post.all().ancestor(blog_key()).order("-created").run(limit=10)
+		entries = Post.query(ancestor=blog_key()).order(-Post.created).fetch(10)
 
 		#db is not queried until something is ran on entries. Make a list out of the
 		#query to force the query to run. This prevents potentially running the query
@@ -79,25 +79,25 @@ def get_entry(entry_id):
 # The users_key function returns the parent key for users.
 # Having a parent key guarantees consistency when querying immediately after creation (?)
 def users_key(group = 'default'):
-	return db.Key.from_path('users', group)
+	return ndb.Key('users', group)
 
-class User(db.Model):
-	username = db.StringProperty(required = True)
-	password = db.StringProperty(required = True)
-	email = db.StringProperty()
-	joined = db.DateTimeProperty(auto_now_add = True)
+class User(ndb.Model):
+	username = ndb.StringProperty(required = True)
+	password = ndb.StringProperty(required = True)
+	email = ndb.StringProperty()
+	joined = ndb.DateTimeProperty(auto_now_add = True)
 
 	# NOTE: @classmethods are methods called on classes, not instances of classes
 
 	# The by_id classmethod returns the user object corresponding to the user id (uid)
 	@classmethod
 	def by_id(cls, uid):
-		return cls.get_by_id(uid, parent = users_key())
+		return cls.get_by_id(uid, parent=users_key())
 
 	# The by_name classmethod returns the user object corresponding to the username
 	@classmethod
 	def by_name(cls, username):
-		u = cls.all().filter('username =', username).get()
+		u = cls.query(cls.username==username).get()
 		return u
 
 	# The register classmethod creates a new User object and handles password hashing
