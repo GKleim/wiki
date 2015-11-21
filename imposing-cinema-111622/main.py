@@ -49,7 +49,6 @@ class WikiPage(Handler):
 	def get(self, page_tag):
 		# a blank url is equivalent to the homepage
 		if page_tag == '':
-			print 'empty'
 			self.redirect(uri_for('home'))
 			return
 
@@ -201,16 +200,16 @@ class Flush(Handler):
 PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
 
 app = webapp2.WSGIApplication([
-    webapp2.Route(r'/_signup', handler=Register, name='signup'),
-    webapp2.Route(r'/_welcome', handler=Welcome, name='welcome'),
+    webapp2.Route(r'/signup', handler=Register, name='signup'),
+    webapp2.Route(r'/welcome', handler=Welcome, name='welcome'),
     webapp2.Route(r'/(\d+)/?(?:.json)?', handler=Permalink, name='permalink'),
     webapp2.Route(r'/blog/newpost', handler=NewPost, name='newpost'),
-    webapp2.Route(r'/_login', handler=Login, name='login'),
-    webapp2.Route(r'/_logout', handler=Logout, name='logout'),
-    webapp2.Route(r'/_flush', handler=Flush, name='flush'),
-    webapp2.Route(r'/_edit' + PAGE_RE, handler=EditPage, name='edit'),
-    webapp2.Route(r'/_history' + PAGE_RE, handler=HistoryPage, name='history'),
-    webapp2.Route(r'/_home', handler=HomePage, name='home'),
-    webapp2.Route(PAGE_RE, handler=WikiPage, name='wikipage')
+    webapp2.Route(r'/login', handler=Login, name='login'),
+    webapp2.Route(r'/logout', handler=Logout, name='logout'),
+    webapp2.Route(r'/flush', handler=Flush, name='flush'),
+    webapp2.Route(r'/edit' + PAGE_RE, handler=EditPage, name='edit'),
+    webapp2.Route(r'/history' + PAGE_RE, handler=HistoryPage, name='history'),
+    webapp2.Route(r'/home', handler=HomePage, name='home'),
+    webapp2.Route('/wiki'+PAGE_RE, handler=WikiPage, name='wikipage')
     ], debug=True)
 	# debug = True --> show python tracebacks in the browser
