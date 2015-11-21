@@ -18,6 +18,11 @@ from utils import make_pw_hash, valid_pw
 def wiki_key(name = 'default'):
 	return db.Key.from_path('wikis', name)
 
+def newest_pages():
+	pages = Page.all().ancestor(wiki_key()).order("-created").run(limit=10)
+	pages = list(pages)
+	return pages
+
 class Page(db.Model):
 	tag = db.StringProperty(required = True)
 		# doubles as the URL?

@@ -117,8 +117,13 @@ class HistoryPage(Handler):
 
 # HomePage renders the homepage of the wiki
 class HomePage(Handler):
+	def render_homepage(self, newest_pages=[], updated_pages=''):
+		self.render('home.html', newest_pages=newest_pages,
+			                     updated_pages=updated_pages)
+
 	def get(self):
-		self.write("WikiPage | home")
+		self.render_homepage(newest_pages=newest_pages())
+		# self.write("WikiPage | home")
 
 
 # Permalink renders a single blog post
