@@ -29,21 +29,105 @@ from entities import *
 from utils import *
 from handler import Handler
 from accounts import Welcome, Register, Login, Logout
+from webapp2 import uri_for
 
-# BlogPage renders the blog homepage with a list of blog post (or entries)
-class BlogPage(Handler):
-	def get(self):
-		# assign a list of the top X posts to entries
-		entries = top_entries()
+# WikiPage renders a page in the wiki
+# Improvements:
+#   Homepage ("/")
+#   (1) List the top 10 most recent links
+#   (2) Show the title (url), and first few lines of content
+#   All
+#   (3) This handler matches the regex: [a-z]+. In the future we may
+#       want to allow capitals (but convert to all lowercase for a match).
+#       Also may want to allow the minus sign '-' to represent a space. When
+#       rendering the page title, the works will be split and capitalized based
+#       on the location of the minus signs.
+class WikiPage(Handler):
+	def render_wikipage(self, content='', page_tag=''):
+		self.render('wikipage.html', content=content, page_tag=page_tag)
 
-		#select whether to render json or html
-		if self.format == 'html':
-			# last_query is the time since the last db query for the top entries
-			last_query = datetime.now() - memcache.get("time")
+	def get(self, page_tag):
+		# a blank url is equivalent to the homepage
+		if page_tag == '':
+			self.redirect(uri_for('home'))
+			return
 
-			self.render('front.html', entries=entries, last_query=last_query)
+		# query for Page entity corresponding to the page_tag
+		page = Page.by_tag(page_tag)
+
+		# if there is a matching page in the database, return the page
+		if page:
+			content = get_content(page)
+			self.render_wikipage(content=content.content, page_tag=page_tag)
+			# self.write("WikiPage | %s" % page_tag)
+		# if the there is not a matching page in the database, go to edit page
 		else:
-			self.render_json([e.as_dict() for e in entries])
+			self.redirect(uri_for('edit', page_tag=page_tag))
+
+
+# EditPage renders an edit interface for a page in the wiki
+# If a Page entity does not exist for url, the page entity is displayed
+class EditPage(Handler):
+	def render_editpage(self, page_tag='', content=''):
+		if content == '':
+			content = 'The requested page does not exist.\n'
+			content += 'To create the page, enter in this text field and click "save".'
+		self.render('editpage.html', page_tag=page_tag, content=content)
+
+	def get(self, page_tag):
+		# if a user is logged in, allow the page to be edited
+		if self.user:
+			page = Page.by_tag(page_tag)
+			if page:
+				content = get_content(page)
+				self.render_editpage(page_tag=page_tag, content=content.content)
+				# self.write("WikiPage | edit | %s" % page_tag)
+			else:
+				self.render_editpage(page_tag=page_tag)
+		else:
+			self.redirect(uri_for('login'))
+
+	def post(self, page_tag):
+		user_content = self.request.get('content')
+
+		# query for Page entity correseponding to the page_tag (DRY)
+		p = Page.by_tag(page_tag)
+
+		# if there is no matching page, create the page.
+		# This code is in the post method so pages only get created if the user
+		# has created content for the page.
+		if not p:
+			p = Page(tag=page_tag, owner=self.user.username,
+				     edits = 0, parent=wiki_key())
+			p.put()
+
+		# create content entity with parent p
+		c = Content(content=user_content, author=self.user.username, parent=p.key)
+		c.put()
+
+		p.edits += 1
+		p.put()
+
+		# render the page with the new content
+		self.redirect(uri_for('wikipage', page_tag=page_tag))
+
+
+# HistoryPage renders the content history for a page in the wiki
+class HistoryPage(Handler):
+	def get(self, page_tag):
+		self.write("WikiPage | history | %s" % page_tag)
+
+
+# HomePage renders the homepage of the wiki
+class HomePage(Handler):
+	def render_homepage(self, newest_pages=[], updated_pages=[]):
+		self.render('home.html', newest_pages=newest_pages,
+			                     updated_pages=updated_pages)
+
+	def get(self):
+		self.render_homepage(newest_pages=newest_pages(),
+			                 updated_pages=newest_page_updates())
+		# self.write("WikiPage | home")
 
 
 # Permalink renders a single blog post
@@ -107,14 +191,25 @@ class Flush(Handler):
 
 
 # url to request handler mapping
-# debug = True --> show python tracebacks in the browser
+
+# PAGE_RE is the regex for wikipage url names
+# Improvements:
+#   (1) ignore matches with strings starting with "_". Currently the list order
+#       in the argument for app matters
+#   (2) since I added extended routes, "/?" won't work for adding an option slash
+PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
+
 app = webapp2.WSGIApplication([
-    ('/blog/?(?:\.json)?', BlogPage),
-    ('/blog/signup', Register),
-    ('/blog/welcome', Welcome),
-    ('/blog/(\d+)/?(?:.json)?', Permalink),
-    ('/blog/newpost', NewPost),
-    ('/blog/login', Login),
-    ('/blog/logout', Logout),
-    ('/blog/flush/?', Flush)
+    webapp2.Route(r'/signup', handler=Register, name='signup'),
+    webapp2.Route(r'/welcome', handler=Welcome, name='welcome'),
+    webapp2.Route(r'/(\d+)/?(?:.json)?', handler=Permalink, name='permalink'),
+    webapp2.Route(r'/blog/newpost', handler=NewPost, name='newpost'),
+    webapp2.Route(r'/login', handler=Login, name='login'),
+    webapp2.Route(r'/logout', handler=Logout, name='logout'),
+    webapp2.Route(r'/flush', handler=Flush, name='flush'),
+    webapp2.Route(r'/edit' + PAGE_RE, handler=EditPage, name='edit'),
+    webapp2.Route(r'/history' + PAGE_RE, handler=HistoryPage, name='history'),
+    webapp2.Route(r'/home', handler=HomePage, name='home'),
+    webapp2.Route('/wiki'+PAGE_RE, handler=WikiPage, name='wikipage')
     ], debug=True)
+	# debug = True --> show python tracebacks in the browser

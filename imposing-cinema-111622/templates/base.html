@@ -2,21 +2,26 @@
 
 <html>
 	<head>
-		<title>Geoff's Blog</title>
+		<title>Geoff's Wiki</title>
 		<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
 	</head>
 	<body>
-		<a href="/blog">
-			<h1>Geoff's Blog</h1>
+		<a href="{{uri_for('wikipage', page_tag='')}}">
+			<h1>Geoff's Wiki</h1>
 		</a>
 		<div class="log">
 			{% if login_name %}
-				{{login_name}}
-				<a href="/blog/logout">(logout)</a>
-			{% else %}
-				<a href="/blog/login">login</a>
+				<a href="{{uri_for('edit', page_tag=page_tag)}}">edit</a>
 				|
-				<a href="/blog/signup">signup</a>
+			{% endif %}
+			<a href="{{uri_for('history', page_tag=page_tag)}}">history</a>
+			{% if login_name %}
+				{{login_name}}
+				<a href="{{uri_for('logout')}}">(logout)</a>
+			{% else %}
+				<a href="{{uri_for('login')}}">login</a>
+				|
+				<a href="{{uri_for('signup')}}">signup</a>
 			{% endif %}
 		</div>
 		{% block content %}

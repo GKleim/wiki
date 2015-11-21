@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+	<div class="edit-content">
+		<form method="post" action="{{uri_for('edit', page_tag=page_tag)}}">
+			<textarea name="content">{{content}}</textarea>
+				<span class="error">{{content_error}}</span>
+			<div>
+				<input type="submit" value="save">
+			</div>
+		</form>
+	</div>
+{% endblock %}

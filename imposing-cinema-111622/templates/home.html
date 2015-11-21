@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>10 Newest Pages</h1>
+	{% for p in newest_pages %}
+		<div class="entry">
+			<div class="entry-heading">
+				<div class="entry-subject">
+					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
+				</div>
+				<div class="entry-created">{{p.created.strftime('%d %b %Y')}}</div>
+			</div>
+		</div>
+	{% endfor %}
+	<h1>10 Recently Updated Pages</h1>
+	{% for p in updated_pages %}
+		<div class="entry">
+			<div class="entry-heading">
+				<div class="entry-subject">
+					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
+				</div>
+				<div class="entry-created">{{p.modified.strftime('%d %b %Y')}}</div>
+			</div>
+		</div>
+	{% endfor %}
+{% endblock %}
