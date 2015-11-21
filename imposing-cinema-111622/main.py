@@ -114,8 +114,14 @@ class EditPage(Handler):
 
 # HistoryPage renders the content history for a page in the wiki
 class HistoryPage(Handler):
+	def render_historypage(self, page_tag='', history=''):
+		self.render('history.html', page_tag=page_tag, history=history)
+
 	def get(self, page_tag):
-		self.write("WikiPage | history | %s" % page_tag)
+		page = Page.by_tag(page_tag)
+		history = get_history(page)
+		self.render_historypage(page_tag=page_tag, history=history)
+		# self.write("WikiPage | history | %s" % page_tag)
 
 
 # HomePage renders the homepage of the wiki

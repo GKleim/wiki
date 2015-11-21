@@ -29,17 +29,17 @@
     <div class="blog-masthead">
       <div class="container">
         <nav class="blog-nav">
-          <a class="blog-nav-item" href="{{uri_for('wikipage', page_tag='')}}">Home</a>
+          <a class="blog-nav-item active" href="{{uri_for('wikipage', page_tag='')}}">Home</a>
           {% if login_name %}
           <a class="blog-nav-item" href="{{uri_for('edit', page_tag=page_tag)}}">Edit</a>
           {% endif %}
-          <a class="blog-nav-item" href="#">History</a>
+          <a class="blog-nav-item" href="{{uri_for('history', page_tag=page_tag)}}">History</a>
           {% if login_name %}
           <a class="blog-nav-item" href="#">{{login_name}}</a>
           <a class="blog-nav-item" href="{{uri_for('logout')}}">Logout</a>
           {% else %}
           <a class="blog-nav-item" href="{{uri_for('login')}}">Login</a>
-		  <a class="blog-nav-item" href="{{uri_for('signup')}}">Signup</a>
+		    <a class="blog-nav-item" href="{{uri_for('signup')}}">Signup</a>
 		  {% endif %}
         </nav>
       </div>
@@ -51,7 +51,7 @@
 </div>
 
     <footer class="blog-footer">
-      <p>Blog template built for <a href="http://getbootstrap.com">Bootstrap</a> by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+      <p>Wiki design by <a href="#">@GKleim</a> using free software.</p>
       <p>
         <a href="#">Back to top</a>
       </p>

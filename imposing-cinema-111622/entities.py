@@ -76,6 +76,11 @@ def newest_page_updates():
 	pages = list(pages)
 	return pages
 
+def get_history(page):
+	history = Content.query(ancestor=page.key).order(-Content.created).fetch(10)
+	history = list(history)
+	return history
+
 class Content(ndb.Model):
 	content = ndb.TextProperty(required = True)
 		# Text property stores up to 1 MB and cannot be indexed

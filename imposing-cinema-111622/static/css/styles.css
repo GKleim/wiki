@@ -167,8 +167,8 @@ h6, .h6 {
 
 body {
   /* padding-top: 40px;
-  padding-bottom: 40px; */
-  background-color: #eee;
+  padding-bottom: 40px;
+  background-color: #eee; */
 }
 
 .form-signin {
@@ -206,6 +206,10 @@ body {
   border-top-right-radius: 0;
 }
 
+.error {
+  color: red;
+}
+
 /*
 body {
 	font-family: sans-serif;
@@ -237,9 +241,6 @@ h4 {
 	font-size: 12px;
 }
 
-.error {
-	color: red;
-}
 
 label {
 	display: block;
