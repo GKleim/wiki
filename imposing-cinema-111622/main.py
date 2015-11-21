@@ -80,8 +80,8 @@ class EditPage(Handler):
 		if self.user:
 			page =Page.by_tag(page_tag)
 			if page:
-				content = Content.all().ancestor(page).order("-created").fetch(1)
-				self.render_editpage(page_tag=page_tag, content=content[0].content)
+				content = get_content(page)
+				self.render_editpage(page_tag=page_tag, content=content.content)
 				# self.write("WikiPage | edit | %s" % page_tag)
 			else:
 				self.render_editpage(page_tag=page_tag)

@@ -23,7 +23,7 @@ class Page(db.Model):
 		# doubles as the URL?
 	owner = db.StringProperty(required = True)
 		# default owner is the user who wrote the first entry
-	created = db.DateTimeProperty(auto_now = True)
+	created = db.DateTimeProperty(auto_now_add = True)
 
 	# The by_tag classmethod returns the page object corresponding to the tag
 	@classmethod
@@ -58,12 +58,18 @@ class Page(db.Model):
 #   -- the content of wikipage "A" is stored as a collection of Content entities at path
 #      /wikis/Page entity/
 #   -- the most recent Content entity is displayed for a given url (store only 10 most recent?)
+
+# get_content returns the most recent content for the page (content to be displayed)
+def get_content(page):
+	content = Content.all().ancestor(page).order("-created").fetch(1)
+	return content[0]
+
 class Content(db.Model):
 	content = db.TextProperty(required = True)
 		# Text property stores up to 1 MB and cannot be indexed
 	author = db.StringProperty(required = True)
 		# stores User.username (you must be a registered user to generate content) 
-	created = db.DateTimeProperty(auto_now = True)
+	created = db.DateTimeProperty(auto_now_add = True)
 
 
 # User entity
