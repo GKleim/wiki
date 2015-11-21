@@ -22,7 +22,7 @@
 #       into other .py files
 
 import webapp2, json
-from google.appengine.ext import ndb
+# from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from entities import *
@@ -187,7 +187,7 @@ class NewPost(Handler):
 class Flush(Handler):
 	def get(self):
 		memcache.flush_all()
-		self.redirect('/blog/signup')
+		self.redirect(uri_for('signup'))
 
 
 # url to request handler mapping

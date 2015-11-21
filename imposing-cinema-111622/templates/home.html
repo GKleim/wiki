@@ -7,7 +7,7 @@
 				<div class="entry-subject">
 					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
 				</div>
-				<div class="entry-created">{{p.created.strftime('%d %b %Y')}}</div>
+				<div class="entry-created">{{p.created.strftime('%c')}}</div>
 			</div>
 		</div>
 	{% endfor %}
@@ -18,7 +18,7 @@
 				<div class="entry-subject">
 					<a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a>
 				</div>
-				<div class="entry-created">{{p.modified.strftime('%d %b %Y')}}</div>
+				<div class="entry-created">{{p.modified.strftime('%c')}}</div>
 			</div>
 		</div>
 	{% endfor %}
