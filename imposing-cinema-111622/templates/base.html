@@ -29,7 +29,7 @@
     <div class="blog-masthead">
       <div class="container">
         <nav class="blog-nav">
-          <a class="blog-nav-item active" href="{{uri_for('wikipage', page_tag='')}}">Home</a>
+          <a class="blog-nav-item" href="{{uri_for('wikipage', page_tag='')}}">Home</a>
           {% if login_name %}
           <a class="blog-nav-item" href="{{uri_for('edit', page_tag=page_tag)}}">Edit</a>
           {% endif %}

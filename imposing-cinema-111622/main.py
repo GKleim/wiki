@@ -55,10 +55,16 @@ class WikiPage(Handler):
 		# query for Page entity corresponding to the page_tag
 		page = Page.by_tag(page_tag)
 
+		version = self.request.get('v')
+
 		# if there is a matching page in the database, return the page
 		if page:
-			content = get_content(page)
+			if version and int(version) > 0:
+				content = get_history(page)[int(version)]
+			else:
+				content = get_content(page)
 			self.render_wikipage(content=content.content, page_tag=page_tag)
+			
 			# self.write("WikiPage | %s" % page_tag)
 		# if the there is not a matching page in the database, go to edit page
 		else:
@@ -78,8 +84,12 @@ class EditPage(Handler):
 		# if a user is logged in, allow the page to be edited
 		if self.user:
 			page = Page.by_tag(page_tag)
+			version = self.request.get('v')
 			if page:
-				content = get_content(page)
+				if version and int(version) > 0:
+					content = get_history(page)[int(version)]
+				else:
+					content = get_content(page)
 				self.render_editpage(page_tag=page_tag, content=content.content)
 				# self.write("WikiPage | edit | %s" % page_tag)
 			else:

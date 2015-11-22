@@ -11,9 +11,20 @@
 	<div class="row">
 		<div class="col-sm-12 blog-main">
           <div class="blog-post">
-            {% for h in history %}
-            {{h.created.strftime('%c')}} | {{h.author}} | {{h.content}}
-            {% endfor %}
+          	<table class="table table-striped">
+              <tbody>
+              {% set i = 0 %}
+          		{% for h in history %}
+          			<tr>
+	            		<td>{{h.created.strftime('%c')}}</td>
+	            		<td>{{h.content}}</td>
+	            		<td><a href="{{uri_for('wikipage',page_tag=page_tag)}}?v={{i}}">view</a></td>
+	            		<td><a href="{{uri_for('edit',page_tag=page_tag)}}?v={{i}}">edit</a></td>
+	            	</tr>
+              {% set i = i + 1 %}
+            	{% endfor %}
+            </tbody>
+          	</table>
           </div>
         </div> 
     </div>
