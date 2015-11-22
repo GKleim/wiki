@@ -33,21 +33,16 @@ from webapp2 import uri_for
 
 # WikiPage renders a page in the wiki
 # Improvements:
-#   Homepage ("/")
-#   (1) List the top 10 most recent links
-#   (2) Show the title (url), and first few lines of content
-#   All
-#   (3) This handler matches the regex: [a-z]+. In the future we may
-#       want to allow capitals (but convert to all lowercase for a match).
-#       Also may want to allow the minus sign '-' to represent a space. When
-#       rendering the page title, the works will be split and capitalized based
-#       on the location of the minus signs.
+#   (1) improve regex handling to allow for trailing slash
+#   (2) There is alot of identical code in the WikiPage and EditPage handlers
+#       Reoragnize the code to prevent the retyping.
 class WikiPage(Handler):
 	def render_wikipage(self, content='', page_tag=''):
 		self.render('wikipage.html', content=content, page_tag=page_tag)
 
 	def get(self, page_tag):
 		# a blank url is equivalent to the homepage
+		# note: a "blank" is actually the path /wiki/''
 		if page_tag == '':
 			self.redirect(uri_for('home'))
 			return
@@ -55,6 +50,8 @@ class WikiPage(Handler):
 		# query for Page entity corresponding to the page_tag
 		page = Page.by_tag(page_tag)
 
+		# get version parameter value (/..?v=#)
+		# The version number is sent when redirecting from a history page
 		version = self.request.get('v')
 
 		# if there is a matching page in the database, return the page
@@ -73,6 +70,11 @@ class WikiPage(Handler):
 
 # EditPage renders an edit interface for a page in the wiki
 # If a Page entity does not exist for url, the page entity is displayed
+# Improvements:
+#   (1) The edit and history lines should not be shown on the webpage when at the
+#       webpage or other utility type pages (signin, info, etc.)
+#   (2) I feel like there is a way to reduce all of the query calls, but I have not
+#       looked at the code too closely to figure out a better way to do it.
 class EditPage(Handler):
 	def render_editpage(self, page_tag='', content=''):
 		if content == '':
@@ -115,6 +117,10 @@ class EditPage(Handler):
 		c = Content(content=user_content, author=self.user.username, parent=p.key)
 		c.put()
 
+		# update the counter for number of saved edits for a page.
+		# This is not very elegant, but it was a way for me to force the modified
+		# date property in the Page instance to udpate when a new content instance
+		# is create.
 		p.edits += 1
 		p.put()
 
@@ -123,6 +129,9 @@ class EditPage(Handler):
 
 
 # HistoryPage renders the content history for a page in the wiki
+# Improvements:
+#   (1) Improve how the history table is displayed. Limit the number of characters
+#       shown for the content field?
 class HistoryPage(Handler):
 	def render_historypage(self, page_tag='', history=''):
 		self.render('history.html', page_tag=page_tag, history=history)
@@ -135,6 +144,12 @@ class HistoryPage(Handler):
 
 
 # HomePage renders the homepage of the wiki
+# Improvements:
+#   (1) Show the most recently updated/created pages in a different way. Right now
+#       the pages are represented by their tags which are ugly (i.e. Houston_Texas).
+#       May want to write a parsing function to format the text that is displayed.
+#   (2) Add a wikipage search or an alphabetical index?
+#   (3) Add an info webpage the describes how to use the wiki
 class HomePage(Handler):
 	def render_homepage(self, newest_pages=[], updated_pages=[]):
 		self.render('home.html', newest_pages=newest_pages,

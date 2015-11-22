@@ -9,6 +9,8 @@ from webapp2 import uri_for
 
 # The SignUp class is the base class for register/sign up classes.
 # The SignUp handler acts as the signup form input validation
+# Improvements:
+#   (1) Show errors on webpage in a bootstrap beautified way
 class SignUp(Handler):
 	# The render_signup function simplifies the html render call
 	def render_signup(self, username='', email='', username_error='',
@@ -90,6 +92,9 @@ class Register(SignUp):
 
 
 # The Login class handles requests to the user login page
+# Improvements:
+#   (1) Allow the user to click "remember me". Could this be implemented using
+#       cookies that do not expire when the browser closes?
 class Login(Handler):
 	def render_login(self, username='', login_error=''):
 		self.render('login.html', username=username, login_error=login_error)
@@ -112,6 +117,9 @@ class Login(Handler):
 
 
 # The Welcome class renders html for welcome page requests
+# Improvements:
+#   (1) Redirect use to the homepage instead with maybe a flash message at the
+#       top that says "Welcome, {{username}}"?
 class Welcome(Handler):
 	def get(self):
 		# self.user is inherited from the Handler class
@@ -120,9 +128,10 @@ class Welcome(Handler):
 		else:
 			self.redirect(uri_for('signup'))
 
+
 # The Logout class logs the user out
 class Logout(Handler):
 	def get(self):
 		# self.logout() is an instance method inherited from Handler class
 		self.logout()
-		self.redirect(uri_for('signup'))
+		self.redirect(uri_for('home'))

@@ -30,7 +30,10 @@ class Page(ndb.Model):
 		# default owner is the user who wrote the first entry
 	created = ndb.DateTimeProperty(auto_now_add = True)
 	modified = ndb.DateTimeProperty(auto_now = True)
+		# the page is considered to be modified when a new content instance is created
 	edits = ndb.IntegerProperty(required = True)
+	    # the number of content pages is stored. Updated this value forces modified to update
+
 
 	# The by_tag classmethod returns the page object corresponding to the tag
 	@classmethod
@@ -50,6 +53,7 @@ class Page(ndb.Model):
 # Improvements:
 #   (1) JSON?
 #   (2) Review process for Content changes. Changes are sent to Page.owner for review.
+#   (3) Cache some of the query results?
 # Organization:
 #   -- wikipages are organized with the following structure:
 #      /wikis
