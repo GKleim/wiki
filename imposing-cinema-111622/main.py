@@ -1,7 +1,8 @@
 """`main` is the top level module for your Flask application."""
 
 # Import the Flask Framework
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
+from entities import *
 app = Flask(__name__)
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
@@ -9,11 +10,33 @@ app = Flask(__name__)
 
 @app.route('/')
 @app.route('/home/')
+@app.route('/wiki/')
 def home():
 	newest_pages=[]
 	updated_pages=[]
-    return render_template('home.html', newest_pages=newest_pages,
-    									updated_pages=updated_pages)
+	return render_template('home.html',
+							newest_pages=newest_pages,
+							updated_pages=updated_pages)
+
+
+
+PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
+
+@app.route('/wiki/<page_tag>/')
+def wikipage(page_tag):
+	page = Page.by_tag(page_tag)
+	if page:
+		content = get_content(page)
+		return render_template('wikipage.html',
+								content=content.content,
+								page_tag=page_tag)
+	else:
+		return redirect(url_for('edit', page_tag=page_tag))
+
+
+@app.route('/edit/<page_tag>/')
+def edit(page_tag):
+	return 'hello'
 
 
 @app.errorhandler(404)
