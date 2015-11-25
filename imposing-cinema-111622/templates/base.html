@@ -29,17 +29,17 @@
     <div class="blog-masthead">
       <div class="container">
         <nav class="blog-nav">
-          <a class="blog-nav-item" href="{{uri_for('wikipage', page_tag='')}}">Home</a>
+          <a class="blog-nav-item" href="#">Home</a>
           {% if login_name %}
-          <a class="blog-nav-item" href="{{uri_for('edit', page_tag=page_tag)}}">Edit</a>
+          <a class="blog-nav-item" href="#">Edit</a>
           {% endif %}
-          <a class="blog-nav-item" href="{{uri_for('history', page_tag=page_tag)}}">History</a>
+          <a class="blog-nav-item" href="#">History</a>
           {% if login_name %}
           <a class="blog-nav-item" href="#">{{login_name}}</a>
-          <a class="blog-nav-item" href="{{uri_for('logout')}}">Logout</a>
+          <a class="blog-nav-item" href="#">Logout</a>
           {% else %}
-          <a class="blog-nav-item" href="{{uri_for('login')}}">Login</a>
-		    <a class="blog-nav-item" href="{{uri_for('signup')}}">Signup</a>
+          <a class="blog-nav-item" href="#">Login</a>
+		    <a class="blog-nav-item" href="#">Signup</a>
 		  {% endif %}
         </nav>
       </div>
