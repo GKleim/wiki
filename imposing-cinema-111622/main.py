@@ -1,7 +1,7 @@
 """`main` is the top level module for your Flask application."""
 
 # Import the Flask Framework
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, session
 from entities import *
 app = Flask(__name__)
 app.secret_key = 'secret'
@@ -41,7 +41,7 @@ def edit(page_tag):
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login():
+def login(username='', login_error=''):
 	if request.method == 'POST':
 		username = request.form['username']
 		password = request.form['password']
@@ -50,17 +50,19 @@ def login():
 
 		if user:
 			session['username'] = username
-			redirect(url_for('welcome', username=username))
+			print session['username']
+			return redirect(url_for('welcome'))
 		else:
-			redirect(url_for('signup'))
-
-	return render_template('login.html')
+			login_error = 'invalid login'
+			
+	return render_template('login.html',
+		username=username, login_error=login_error)
 
 
 @app.route('/welcome')
-def logout():
+def welcome():
 	username = session['username']
-	return render_template('welcome.html')
+	return render_template('welcome.html', username=username)
 
 
 @app.route('/logout')
