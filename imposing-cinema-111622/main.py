@@ -22,6 +22,7 @@ app.secret_key = 'secret'
 @app.route('/')
 @app.route('/home')
 @app.route('/wiki')
+@app.route('/home')
 def home():
     newest_pages=[]
     updated_pages=[]

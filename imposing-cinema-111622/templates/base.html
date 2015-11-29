@@ -31,7 +31,7 @@
         <nav class="blog-nav">
           <a class="blog-nav-item" href="{{url_for('home')}}">Home</a>
           {% if 'username' in session %}
-          <a class="blog-nav-item" href="#">Edit</a>
+          <a class="blog-nav-item" href="{{url_for('edit', page_tag=page_tag)}}">Edit</a>
           {% endif %}
           <a class="blog-nav-item" href="#">History</a>
           {% if 'username' in session %}
