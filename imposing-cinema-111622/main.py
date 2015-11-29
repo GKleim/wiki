@@ -12,6 +12,13 @@ app.secret_key = 'secret'
 # the App Engine WSGI application server.
 
 
+# home renders the homepage of the wiki
+# Improvements:
+#   (1) Show the most recently updated/created pages in a different way. Right now
+#       the pages are represented by their tags which are ugly (i.e. Houston_Texas).
+#       May want to write a parsing function to format the text that is displayed.
+#   (2) Add a wikipage search or an alphabetical index?
+#   (3) Add an info webpage the describes how to use the wiki
 @app.route('/')
 @app.route('/home')
 @app.route('/wiki')
@@ -25,21 +32,79 @@ def home():
 
 PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
 
-@app.route('/wiki/<page_tag>/')
+# wikipage renders a page in the wiki
+# Improvements:
+#   (1) improve regex handling to allow for trailing slash
+#   (2) There is alot of identical code in the WikiPage and EditPage handlers
+#       Reoragnize the code to prevent the retyping.
+@app.route('/wiki/<page_tag>')
 def wikipage(page_tag):
+    # query for Page entity corresponding to the page_tag
     page = Page.by_tag(page_tag)
+    # get version parameter value (/..?v=#)
+    # The version number is sent when redirecting from a history page
+    version = request.args.get('v')
+    # if there is a matching page in the database, return the page
     if page:
-        content = get_content(page)
+        if version and int(version) > 0:
+            content = get_history(page)[int(version)].content
+        else:
+            content = get_content(page).content
         return render_template('wikipage.html',
-                                content=content.content,
+                                content=content,
                                 page_tag=page_tag)
+    # if the there is not a matching page in the database, go to edit page
     else:
         return redirect(url_for('edit', page_tag=page_tag))
 
 
-@app.route('/edit/<page_tag>')
-def edit(page_tag):
-    return 'hello'
+# edit renders an edit interface for a page in the wiki
+# If a Page entity does not exist for url, the page entity is displayed
+# Improvements:
+#   (1) The edit and history lines should not be shown on the webpage when at the
+#       webpage or other utility type pages (signin, info, etc.)
+#   (2) I feel like there is a way to reduce all of the query calls, but I have not
+#       looked at the code too closely to figure out a better way to do it.
+@app.route('/edit/<page_tag>', methods=['GET', 'POST'])
+def edit(page_tag, content=None):
+    if session.get('username'):
+        p = Page.by_tag(page_tag)
+        if request.method == 'POST':
+            user_content = request.form['content']
+            # if there is no matching page, create the page.
+            # This code is in the post method so pages only get created if the
+            # user has created content for the page.
+            if not p:
+                p = Page(tag=page_tag, owner=session['username'],
+                         edits = 0, parent=wiki_key())
+                p.put()
+            # create content entity with parent p
+            c = Content(content=user_content, author=session['username'],
+                        parent=p.key)
+            c.put()
+            # update the counter for number of saved edits for a page.
+            # This is not very elegant, but it was a way for me to force the
+            # modified date property in the Page instance to udpate when a new
+            # content instance is created.
+            p.edits += 1
+            p.put()
+            # render the page with the new content
+            return redirect(url_for('wikipage', page_tag=page_tag))
+        # if a user is logged in, allow the page to be edited
+        version = request.args.get('v')
+        if p:
+            if version and int(version) > 0:
+                content = get_history(p)[int(version)].content
+            else:
+                content = get_content(p).content
+        if not content:
+            content = 'The requested page does not exist.\n'
+            content += 'To create the page, enter in this text field and'
+            content += ' click "save".'
+        return render_template('editpage.html', page_tag=page_tag,
+                                content=content)
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
