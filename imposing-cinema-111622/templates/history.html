@@ -18,8 +18,8 @@
           			<tr>
 	            		<td>{{h.created.strftime('%c')}}</td>
 	            		<td>{{h.content}}</td>
-	            		<td><a href="{{uri_for('wikipage',page_tag=page_tag)}}?v={{i}}">view</a></td>
-	            		<td><a href="{{uri_for('edit',page_tag=page_tag)}}?v={{i}}">edit</a></td>
+	            		<td><a href="{{url_for('wikipage',page_tag=page_tag)}}?v={{i}}">view</a></td>
+	            		<td><a href="{{url_for('edit',page_tag=page_tag)}}?v={{i}}">edit</a></td>
 	            	</tr>
               {% set i = i + 1 %}
             	{% endfor %}

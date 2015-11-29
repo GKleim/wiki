@@ -117,7 +117,8 @@ class User(ndb.Model):
 	# The by_name classmethod returns the user object corresponding to the username
 	@classmethod
 	def by_name(cls, username):
-		u = cls.query(cls.username==username).get()
+		# converted to ancestor query for consistency
+		u = cls.query(cls.username==username, ancestor=users_key()).get()
 		return u
 
 	# The register classmethod creates a new User object and handles password hashing
@@ -199,47 +200,3 @@ def get_entry(entry_id):
 		# A "time" key is created for each entry for display on webpage
 		memcache.set('time|%s' % entry_id, datetime.now())
 	return entry
-
-
-# User entity
-# The User entity represents rows of user accounts
-
-# The users_key function returns the parent key for users.
-# Having a parent key guarantees consistency when querying immediately after creation (?)
-def users_key(group = 'default'):
-	return ndb.Key('users', group)
-
-class User(ndb.Model):
-	username = ndb.StringProperty(required = True)
-	password = ndb.StringProperty(required = True)
-	email = ndb.StringProperty()
-	joined = ndb.DateTimeProperty(auto_now_add = True)
-
-	# NOTE: @classmethods are methods called on classes, not instances of classes
-
-	# The by_id classmethod returns the user object corresponding to the user id (uid)
-	@classmethod
-	def by_id(cls, uid):
-		return cls.get_by_id(uid, parent=users_key())
-
-	# The by_name classmethod returns the user object corresponding to the username
-	@classmethod
-	def by_name(cls, username):
-		u = cls.query(cls.username==username).get()
-		return u
-
-	# The register classmethod creates a new User object and handles password hashing
-	@classmethod
-	def register(cls, username, password, email = None):
-		password = make_pw_hash(username, password)
-		return cls(parent = users_key(),
-					username = username,
-					password = password,
-					email = email)
-
-	# The login classmethod signs the user into the website
-	@classmethod
-	def login(cls, username, password):
-		u = cls.by_name(username)
-		if u and valid_pw(username, password, u.password):
-			return u

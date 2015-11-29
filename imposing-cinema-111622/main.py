@@ -1,246 +1,243 @@
-#!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+"""`main` is the top level module for your Flask application."""
 
-# main.py
-# This .py file contains the url to handler mappings and the core request handlers
-# Improvements:
-#	(1) If the site gets larger, I may want to start grouping out the core request handlers
-#       into other .py files
-
-import webapp2, json
-# from google.appengine.ext import ndb
-from google.appengine.api import memcache
-from datetime import datetime, timedelta
+# Import the Flask Framework
+from flask import Flask, render_template, redirect, url_for, request, session
+from flask.views import View
 from entities import *
 from utils import *
-from handler import Handler
-from accounts import Welcome, Register, Login, Logout
-from webapp2 import uri_for
-
-# WikiPage renders a page in the wiki
-# Improvements:
-#   (1) improve regex handling to allow for trailing slash
-#   (2) There is alot of identical code in the WikiPage and EditPage handlers
-#       Reoragnize the code to prevent the retyping.
-class WikiPage(Handler):
-	def render_wikipage(self, content='', page_tag=''):
-		self.render('wikipage.html', content=content, page_tag=page_tag)
-
-	def get(self, page_tag):
-		# a blank url is equivalent to the homepage
-		# note: a "blank" is actually the path /wiki/''
-		if page_tag == '':
-			self.redirect(uri_for('home'))
-			return
-
-		# query for Page entity corresponding to the page_tag
-		page = Page.by_tag(page_tag)
-
-		# get version parameter value (/..?v=#)
-		# The version number is sent when redirecting from a history page
-		version = self.request.get('v')
-
-		# if there is a matching page in the database, return the page
-		if page:
-			if version and int(version) > 0:
-				content = get_history(page)[int(version)]
-			else:
-				content = get_content(page)
-			self.render_wikipage(content=content.content, page_tag=page_tag)
-			
-			# self.write("WikiPage | %s" % page_tag)
-		# if the there is not a matching page in the database, go to edit page
-		else:
-			self.redirect(uri_for('edit', page_tag=page_tag))
+app = Flask(__name__)
+# secret key for sessions. This needs to be a random file and kept safe
+app.secret_key = 'secret'
+# Note: We don't need to call run() since our application is embedded within
+# the App Engine WSGI application server.
 
 
-# EditPage renders an edit interface for a page in the wiki
-# If a Page entity does not exist for url, the page entity is displayed
-# Improvements:
-#   (1) The edit and history lines should not be shown on the webpage when at the
-#       webpage or other utility type pages (signin, info, etc.)
-#   (2) I feel like there is a way to reduce all of the query calls, but I have not
-#       looked at the code too closely to figure out a better way to do it.
-class EditPage(Handler):
-	def render_editpage(self, page_tag='', content=''):
-		if content == '':
-			content = 'The requested page does not exist.\n'
-			content += 'To create the page, enter in this text field and click "save".'
-		self.render('editpage.html', page_tag=page_tag, content=content)
-
-	def get(self, page_tag):
-		# if a user is logged in, allow the page to be edited
-		if self.user:
-			page = Page.by_tag(page_tag)
-			version = self.request.get('v')
-			if page:
-				if version and int(version) > 0:
-					content = get_history(page)[int(version)]
-				else:
-					content = get_content(page)
-				self.render_editpage(page_tag=page_tag, content=content.content)
-				# self.write("WikiPage | edit | %s" % page_tag)
-			else:
-				self.render_editpage(page_tag=page_tag)
-		else:
-			self.redirect(uri_for('login'))
-
-	def post(self, page_tag):
-		user_content = self.request.get('content')
-
-		# query for Page entity correseponding to the page_tag (DRY)
-		p = Page.by_tag(page_tag)
-
-		# if there is no matching page, create the page.
-		# This code is in the post method so pages only get created if the user
-		# has created content for the page.
-		if not p:
-			p = Page(tag=page_tag, owner=self.user.username,
-				     edits = 0, parent=wiki_key())
-			p.put()
-
-		# create content entity with parent p
-		c = Content(content=user_content, author=self.user.username, parent=p.key)
-		c.put()
-
-		# update the counter for number of saved edits for a page.
-		# This is not very elegant, but it was a way for me to force the modified
-		# date property in the Page instance to udpate when a new content instance
-		# is create.
-		p.edits += 1
-		p.put()
-
-		# render the page with the new content
-		self.redirect(uri_for('wikipage', page_tag=page_tag))
-
-
-# HistoryPage renders the content history for a page in the wiki
-# Improvements:
-#   (1) Improve how the history table is displayed. Limit the number of characters
-#       shown for the content field?
-class HistoryPage(Handler):
-	def render_historypage(self, page_tag='', history=''):
-		self.render('history.html', page_tag=page_tag, history=history)
-
-	def get(self, page_tag):
-		page = Page.by_tag(page_tag)
-		history = get_history(page)
-		self.render_historypage(page_tag=page_tag, history=history)
-		# self.write("WikiPage | history | %s" % page_tag)
-
-
-# HomePage renders the homepage of the wiki
+# home renders the homepage of the wiki
 # Improvements:
 #   (1) Show the most recently updated/created pages in a different way. Right now
 #       the pages are represented by their tags which are ugly (i.e. Houston_Texas).
 #       May want to write a parsing function to format the text that is displayed.
 #   (2) Add a wikipage search or an alphabetical index?
 #   (3) Add an info webpage the describes how to use the wiki
-class HomePage(Handler):
-	def render_homepage(self, newest_pages=[], updated_pages=[]):
-		self.render('home.html', newest_pages=newest_pages,
-			                     updated_pages=updated_pages)
+@app.route('/')
+@app.route('/home')
+@app.route('/wiki')
+@app.route('/home')
+def home(newe_pages=None, update_pages=None):
+    new_pages = newest_pages()
+    update_pages = newest_page_updates()
+    return render_template('home.html',
+                            newest_pages=new_pages,
+                            updated_pages=update_pages)
 
-	def get(self):
-		self.render_homepage(newest_pages=newest_pages(),
-			                 updated_pages=newest_page_updates())
-		# self.write("WikiPage | home")
 
-
-# Permalink renders a single blog post
+# wikipage renders a page in the wiki
 # Improvements:
-#   (1) May want to abstract out the memecache gets
-class Permalink(Handler):
-	def get(self, entry_id):
-		# assign the requested entry object to entry
-		entry = get_entry(entry_id)
+#   (1) improve regex handling to allow for trailing slash
+#   (2) There is alot of identical code in the WikiPage and EditPage handlers
+#       Reoragnize the code to prevent the retyping.
+@app.route('/wiki/<page_tag>')
+def wikipage(page_tag):
+    # query for Page entity corresponding to the page_tag
+    page = Page.by_tag(page_tag)
+    # get version parameter value (/..?v=#)
+    # The version number is sent when redirecting from a history page
+    version = request.args.get('v')
+    # if there is a matching page in the database, return the page
+    if page:
+        if version and int(version) > 0:
+            content = get_history(page)[int(version)].content
+        else:
+            content = get_content(page).content
+        return render_template('wikipage.html',
+                                content=content,
+                                page_tag=page_tag)
+    # if the there is not a matching page in the database, go to edit page
+    else:
+        return redirect(url_for('edit', page_tag=page_tag))
 
-		if not entry:
-			self.error(404)
-			return
-		if self.format == 'html':
-			# last_query is the time since the last db_query for the given entry
-			last_query = datetime.now() - memcache.get('time|%s' % entry_id)
 
-			self.render('permalink.html', entry=entry, last_query=last_query)
-		else:
-			self.render_json(entry.as_dict())
-
-
-# NewPost renders the new post input form and handles post submissions
+# edit renders an edit interface for a page in the wiki
+# If a Page entity does not exist for url, the page entity is displayed
 # Improvements:
-#   (1) The site is simple at this point. In the future we may want to add
-#       more complicated content validation. At that point we would need more
-#       helper functions
-class NewPost(Handler):
-	def render_newpost(self, subject='', content='', error=''):
-		self.render('newpost.html', subject=subject, content=content, error=error)
+#   (1) The edit and history lines should not be shown on the webpage when at the
+#       webpage or other utility type pages (signin, info, etc.)
+#   (2) I feel like there is a way to reduce all of the query calls, but I have not
+#       looked at the code too closely to figure out a better way to do it.
+@app.route('/edit/<page_tag>', methods=['GET', 'POST'])
+def edit(page_tag, content=None):
+    if session.get('username'):
+        p = Page.by_tag(page_tag)
+        if request.method == 'POST':
+            user_content = request.form['content']
+            # if there is no matching page, create the page.
+            # This code is in the post method so pages only get created if the
+            # user has created content for the page.
+            if not p:
+                p = Page(tag=page_tag, owner=session['username'],
+                         edits = 0, parent=wiki_key())
+                p.put()
+            # create content entity with parent p
+            c = Content(content=user_content, author=session['username'],
+                        parent=p.key)
+            c.put()
+            # update the counter for number of saved edits for a page.
+            # This is not very elegant, but it was a way for me to force the
+            # modified date property in the Page instance to udpate when a new
+            # content instance is created.
+            p.edits += 1
+            p.put()
+            # render the page with the new content
+            return redirect(url_for('wikipage', page_tag=page_tag))
+        # if a user is logged in, allow the page to be edited
+        version = request.args.get('v')
+        if p:
+            if version and int(version) > 0:
+                content = get_history(p)[int(version)].content
+            else:
+                content = get_content(p).content
+        if not content:
+            content = 'The requested page does not exist.\n'
+            content += 'To create the page, enter in this text field and'
+            content += ' click "save".'
+        return render_template('editpage.html', page_tag=page_tag,
+                                content=content)
+    else:
+        return redirect(url_for('login'))
 
-	def get(self):
-		self.render_newpost()
 
-	def post(self):
-		subject = self.request.get('subject')
-		content = self.request.get('content')
-
-		# if subject and content is present, create a new entry row in the db
-		if subject and content:
-			e = Post(subject=subject, content=content, parent=blog_key())
-			e.put()
-
-			# The True argument tells top_entries to rerun the db query. Performance
-			# is improved by having the db query run only when a new post is added to
-			# the db.
-			top_entries(True)
-
-			self.redirect('/blog/%s' % e.key.id())
-		else:
-			error = 'we need both a subject and content!'
-			self.render_newpost(error=error, subject=subject, content=content)
-
-# The Flush class is shortcut for clearing memcache.
+# histroy renders the content history for a page in the wiki
 # Improvements:
-#   (1) This request handler is taking up space in this file and it is not a core handler.
-class Flush(Handler):
-	def get(self):
-		memcache.flush_all()
-		self.redirect(uri_for('signup'))
+#   (1) Improve how the history table is displayed. Limit the number of characters
+#       shown for the content field?
+@app.route('/history/<page_tag>')
+def history(page_tag, history=None):
+        p = Page.by_tag(page_tag)
+        history = get_history(p)
+        return render_template('history.html', page_tag=page_tag, history=history)
 
 
-# url to request handler mapping
+@app.route('/login', methods=['GET', 'POST'])
+def login(username='', login_error=''):
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # return user if username/pw combo is in database
+        user = User.login(username, password)
+        if user:
+            # set session user
+            session['username'] = username
+            return redirect(url_for('welcome'))
+        else:
+            login_error = 'invalid login' 
+    # GET request is to render the login page 
+    return render_template('login.html',
+        username=username, login_error=login_error)
 
-# PAGE_RE is the regex for wikipage url names
-# Improvements:
-#   (1) ignore matches with strings starting with "_". Currently the list order
-#       in the argument for app matters
-#   (2) since I added extended routes, "/?" won't work for adding an option slash
-PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
 
-app = webapp2.WSGIApplication([
-    webapp2.Route(r'/signup', handler=Register, name='signup'),
-    webapp2.Route(r'/welcome', handler=Welcome, name='welcome'),
-    webapp2.Route(r'/(\d+)/?(?:.json)?', handler=Permalink, name='permalink'),
-    webapp2.Route(r'/blog/newpost', handler=NewPost, name='newpost'),
-    webapp2.Route(r'/login', handler=Login, name='login'),
-    webapp2.Route(r'/logout', handler=Logout, name='logout'),
-    webapp2.Route(r'/flush', handler=Flush, name='flush'),
-    webapp2.Route(r'/edit' + PAGE_RE, handler=EditPage, name='edit'),
-    webapp2.Route(r'/history' + PAGE_RE, handler=HistoryPage, name='history'),
-    webapp2.Route(r'/home', handler=HomePage, name='home'),
-    webapp2.Route('/wiki'+PAGE_RE, handler=WikiPage, name='wikipage')
-    ], debug=True)
-	# debug = True --> show python tracebacks in the browser
+# SignUp is the base class for flask signup type view functions
+class SignUp(View):
+    # specifying the methods as attributes is required?
+    methods = ['GET', 'POST']
+
+    # get_template_name is overwritten by child class to pass html page to be
+    # rendered
+    def get_template_name(self):
+        raise NotImplementedError()
+
+    def render_template(self, username='', email='', username_error='',
+                        password_error='', verify_error='', email_error=''):
+        return render_template(self.get_template_name(), username=username,
+                        email=email, username_error=username_error,
+                        password_error=password_error,
+                        verify_error=verify_error, email_error=email_error)
+
+    def dispatch_request(self):
+        if request.method == 'POST':
+            # have_error is True if any of the inputs do not pass validation
+            have_error = False
+            # assign form data to instance variables
+            self.username = request.form['username']
+            self.password = request.form['password']
+            self.verify = request.form['verify']
+            self.email = request.form['email']
+            # initialize dictionary of inputs to html render function
+            params = dict(username=self.username, email=self.email)
+            # checks for a valid username by comparing to a RegEx
+            if not valid_username(self.username):
+                have_error = True
+                params['username_error'] = 'please enter a valid username'
+            # checks for absence of a password
+            if not self.password:
+                have_error = True
+                params['password_error'] = 'please enter a password'
+            # checks for compliant password (password and verify fields)
+            elif not valid_password(self.password,self.verify):
+                have_error = True
+                params['verify_error'] = 'passwords did not match'
+            # checks for valid email if an email was entered
+            if self.email and not valid_email(self.email):
+                have_error = True
+                params['email_error'] = 'please enter a valid email'
+            # if input does not pass validation, render html with error messages
+            if have_error:
+                return self.render_template(**params)
+            else:
+                return self.done(**params)
+        # if input passes validation, take the action of the done function
+        else:
+            return self.render_template()
+    
+    # The done function is meant to be written over by child class to modify
+    # the action taken after a POST request
+    def done(self, *a, **kw):
+        raise NotImplementedError
+
+
+# Register builds on the SignUp base class
+class Register(SignUp):
+    def get_template_name(self):
+        return 'signup.html'
+
+    def done(self, *a, **kw):
+        # query User entities for the submitted username
+        u = User.by_name(self.username)
+        # throw an error message if the username is already taken
+        if u:
+            msg = 'user is already registered'
+            return self.render_template(username_error=msg, **kw)
+        # register user if username is not taken
+        else:
+            # call register classmethod on User to create a new User in the db
+            u = User.register(self.username, self.password, self.email)
+            u.put()
+            # automatically log the user in and redirect to the welcome page
+            # redirect requires code 307 to redirect as POST
+            return redirect(url_for('login'), code=307)
+
+app.add_url_rule('/signup', view_func=Register.as_view('signup'))
+
+
+@app.route('/welcome')
+def welcome(username=''):
+    if 'username' in session:
+        username = session['username']
+    return render_template('welcome.html', username=username)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('home'))
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Return a custom 404 error."""
+    return 'Sorry, Nothing at this URL.', 404
+
+
+@app.errorhandler(500)
+def application_error(e):
+    """Return a custom 500 error."""
+    return 'Sorry, unexpected error: {}'.format(e), 500
