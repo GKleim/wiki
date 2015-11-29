@@ -6,6 +6,7 @@ from flask.views import View
 from entities import *
 from utils import *
 app = Flask(__name__)
+# secret key for sessions. This needs to be a random file and kept safe
 app.secret_key = 'secret'
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
@@ -46,23 +47,22 @@ def login(username='', login_error=''):
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print username
-        print password
+        # return user if username/pw combo is in database
         user = User.login(username, password)
-        user2 = User.by_name(username)
-        u_ancestor = User
-
         if user:
+            # set session user
             session['username'] = username
             return redirect(url_for('welcome'))
         else:
-            login_error = 'invalid login'
-            
+            login_error = 'invalid login' 
+    # GET request is to render the login page 
     return render_template('login.html',
         username=username, login_error=login_error)
 
 
+# SignUp is the base class for flask signup type view functions
 class SignUp(View):
+    # specifying the methods as attributes is required?
     methods = ['GET', 'POST']
 
     # get_template_name is overwritten by child class to pass html page to be
@@ -119,6 +119,7 @@ class SignUp(View):
         raise NotImplementedError
 
 
+# Register builds on the SignUp base class
 class Register(SignUp):
     def get_template_name(self):
         return 'signup.html'
