@@ -50,7 +50,6 @@ def login(username='', login_error=''):
 
 		if user:
 			session['username'] = username
-			print session['username']
 			return redirect(url_for('welcome'))
 		else:
 			login_error = 'invalid login'
@@ -60,8 +59,9 @@ def login(username='', login_error=''):
 
 
 @app.route('/welcome')
-def welcome():
-	username = session['username']
+def welcome(username=''):
+	if 'username' in session:
+		username = session['username']
 	return render_template('welcome.html', username=username)
 
 
