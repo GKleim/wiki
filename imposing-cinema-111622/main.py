@@ -4,13 +4,14 @@
 from flask import Flask, render_template, redirect, url_for
 from entities import *
 app = Flask(__name__)
+app.secret_key = 'secret'
 # Note: We don't need to call run() since our application is embedded within
 # the App Engine WSGI application server.
 
 
 @app.route('/')
-@app.route('/home/')
-@app.route('/wiki/')
+@app.route('/home')
+@app.route('/wiki')
 def home():
 	newest_pages=[]
 	updated_pages=[]
@@ -34,9 +35,38 @@ def wikipage(page_tag):
 		return redirect(url_for('edit', page_tag=page_tag))
 
 
-@app.route('/edit/<page_tag>/')
+@app.route('/edit/<page_tag>')
 def edit(page_tag):
 	return 'hello'
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	if request.method == 'POST':
+		username = request.form['username']
+		password = request.form['password']
+
+		user = User.login(username, password)
+
+		if user:
+			session['username'] = username
+			redirect(url_for('welcome', username=username))
+		else:
+			redirect(url_for('signup'))
+
+	return render_template('login.html')
+
+
+@app.route('/welcome')
+def logout():
+	username = session['username']
+	return render_template('welcome.html')
+
+
+@app.route('/logout')
+def logout():
+	session.pop('username', None)
+	return redirect(url_for('home'))
 
 
 @app.errorhandler(404)
