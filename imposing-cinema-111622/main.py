@@ -31,8 +31,6 @@ def home(newe_pages=None, update_pages=None):
                             updated_pages=update_pages)
 
 
-PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
-
 # wikipage renders a page in the wiki
 # Improvements:
 #   (1) improve regex handling to allow for trailing slash
@@ -106,6 +104,17 @@ def edit(page_tag, content=None):
                                 content=content)
     else:
         return redirect(url_for('login'))
+
+
+# histroy renders the content history for a page in the wiki
+# Improvements:
+#   (1) Improve how the history table is displayed. Limit the number of characters
+#       shown for the content field?
+@app.route('/history/<page_tag>')
+def history(page_tag, history=None):
+        p = Page.by_tag(page_tag)
+        history = get_history(p)
+        return render_template('history.html', page_tag=page_tag, history=history)
 
 
 @app.route('/login', methods=['GET', 'POST'])
