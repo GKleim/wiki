@@ -30,15 +30,15 @@
       <div class="container">
         <nav class="blog-nav">
           <a class="blog-nav-item" href="{{url_for('home')}}">Home</a>
-          {% if login_name %}
+          {% if 'username' in session %}
           <a class="blog-nav-item" href="#">Edit</a>
           {% endif %}
           <a class="blog-nav-item" href="#">History</a>
-          {% if login_name %}
-          <a class="blog-nav-item" href="#">{{login_name}}</a>
-          <a class="blog-nav-item" href="#">Logout</a>
+          {% if 'username' in session %}
+          <a class="blog-nav-item" href="#">{{session['username']}}</a>
+          <a class="blog-nav-item" href="{{url_for('logout')}}">Logout</a>
           {% else %}
-          <a class="blog-nav-item" href="#">Login</a>
+          <a class="blog-nav-item" href="{{url_for('login')}}">Login</a>
 		    <a class="blog-nav-item" href="#">Signup</a>
 		  {% endif %}
         </nav>

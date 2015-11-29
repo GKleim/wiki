@@ -20,7 +20,6 @@ def home():
 							updated_pages=updated_pages)
 
 
-
 PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
 
 @app.route('/wiki/<page_tag>/')
