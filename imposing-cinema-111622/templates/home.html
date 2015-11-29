@@ -15,7 +15,7 @@
 			<ul>
 			{% for p in newest_pages %}
 				<li>
-            		<p><a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
+            		<p><a href="{{url_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
            		 	<p class="blog-post-meta">created: {{p.created.strftime('%c')}}</p>
           		</li>
           	{% endfor %}
@@ -26,7 +26,7 @@
 			<ul>
 			{% for p in updated_pages %}
 				<li>
-            		<p><a href="{{uri_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
+            		<p><a href="{{url_for('wikipage', page_tag=p.tag)}}">{{p.tag}}</a></p>
            		 	<p class="blog-post-meta">updated: {{p.created.strftime('%c')}}</p>
           		</li>
           	{% endfor %}

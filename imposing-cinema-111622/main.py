@@ -23,12 +23,12 @@ app.secret_key = 'secret'
 @app.route('/home')
 @app.route('/wiki')
 @app.route('/home')
-def home():
-    newest_pages=[]
-    updated_pages=[]
+def home(newe_pages=None, update_pages=None):
+    new_pages = newest_pages()
+    update_pages = newest_page_updates()
     return render_template('home.html',
-                            newest_pages=newest_pages,
-                            updated_pages=updated_pages)
+                            newest_pages=new_pages,
+                            updated_pages=update_pages)
 
 
 PAGE_RE = r'/<page_tag:((?:[a-zA-Z0-9_-]+)*)>'
