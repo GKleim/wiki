@@ -117,7 +117,8 @@ class User(ndb.Model):
 	# The by_name classmethod returns the user object corresponding to the username
 	@classmethod
 	def by_name(cls, username):
-		u = cls.query(cls.username==username).get()
+		# converted to ancestor query for consistency
+		u = cls.query(cls.username==username, ancestor=users_key()).get()
 		return u
 
 	# The register classmethod creates a new User object and handles password hashing
