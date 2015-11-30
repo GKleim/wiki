@@ -246,7 +246,8 @@ def welcome(username=''):
 @app.route('/logout')
 def logout():
     session.pop('username', None)
-    return redirect(url_for('home'))
+    # redirect to the page the user was viewing
+    return redirect(request.referrer)
 
 
 @app.errorhandler(404)
