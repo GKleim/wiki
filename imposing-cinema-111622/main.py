@@ -102,7 +102,6 @@ def edit(page_tag, content=None):
         return render_template('editpage.html', page_tag=page_tag,
                                 content=content)
     else:
-        flash('The page you requested does not exist.')
         flash('Log in to create and edit pages')
         return redirect(url_for('login', last=page_tag))
 
