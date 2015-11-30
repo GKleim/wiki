@@ -53,3 +53,8 @@ def make_pw_hash(name, pw, salt = None):
 def valid_pw(name, pw, h):
 	salt = h.split(',')[1]
 	return h == make_pw_hash(name, pw, salt)
+
+
+# String parsing
+def underscore_to_space(s):
+	return string.replace(s, '_', ' ')

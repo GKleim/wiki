@@ -20,7 +20,6 @@ app.secret_key = 'secret'
 #   (2) Add a wikipage search or an alphabetical index?
 #   (3) Add an info webpage the describes how to use the wiki
 @app.route('/')
-@app.route('/home')
 @app.route('/wiki')
 @app.route('/home')
 def home(newe_pages=None, update_pages=None):
@@ -44,13 +43,15 @@ def wikipage(page_tag):
     version = request.args.get('v')
     # if there is a matching page in the database, return the page
     if page:
+        title = underscore_to_space(page_tag)
         if version and int(version) > 0:
             content = get_history(page)[int(version)].content
         else:
             content = get_content(page).content
         return render_template('wikipage.html',
                                 content=content,
-                                page_tag=page_tag)
+                                page_tag=page_tag,
+                                title=title)
     # if the there is not a matching page in the database, go to edit page
     else:
         return redirect(url_for('edit', page_tag=page_tag))
