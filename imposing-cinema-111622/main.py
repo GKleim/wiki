@@ -102,7 +102,9 @@ def edit(page_tag, content=None):
         return render_template('editpage.html', page_tag=page_tag,
                                 content=content)
     else:
-        return redirect(url_for('login'))
+        flash('The page you requested does not exist.')
+        flash('Log in to create and edit pages')
+        return redirect(url_for('login', last=page_tag))
 
 
 # histroy renders the content history for a page in the wiki
@@ -129,6 +131,9 @@ def login(username='', login_error=''):
         if user:
             # set session user
             session['username'] = username
+            page_tag = request.args.get('last')
+            if page_tag:
+                return redirect(url_for('edit', page_tag=page_tag))
             return redirect(url_for('welcome'))
         else:
             login_error = 'invalid login' 
