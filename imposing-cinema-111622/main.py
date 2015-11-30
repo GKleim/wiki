@@ -100,8 +100,10 @@ def edit(page_tag, content=None):
             content = 'The requested page does not exist.\n'
             content += 'To create the page, enter in this text field and'
             content += ' click "save".'
+        title = underscore_to_space(page_tag)
         return render_template('editpage.html', page_tag=page_tag,
-                                content=content)
+                                content=content,
+                                title=title)
     else:
         flash('Log in to create and edit pages')
         return redirect(url_for('login', last=page_tag))
@@ -115,7 +117,9 @@ def edit(page_tag, content=None):
 def history(page_tag, history=None):
         p = Page.by_tag(page_tag)
         history = get_history(p)
-        return render_template('history.html', page_tag=page_tag, history=history)
+        title = underscore_to_space(page_tag)
+        return render_template('history.html', page_tag=page_tag, history=history,
+                                title=title)
 
 
 @app.route('/login', methods=['GET', 'POST'])
