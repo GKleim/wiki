@@ -1,4 +1,10 @@
 {% extends "wrapper.html" %}
+{% block navlinkswrap %}
+  {% if 'username' in session %}
+    <a class="blog-nav-item" href="{{url_for('edit', page_tag=page_tag)}}">Edit</a>
+  {% endif %}
+    <a class="blog-nav-item" href="{{url_for('history', page_tag=page_tag)}}">History</a>
+{% endblock %}
 {% block wrapper %}
 
 	<div class="blog-header">

@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% block navlinks %}
+
+	<a class="blog-nav-item" href="{{url_for('history', page_tag=page_tag)}}">History</a>
+
+{% endblock %}
 {% block content %}
 
 	<div class="blog-header">
