@@ -1,7 +1,7 @@
 """`main` is the top level module for your Flask application."""
 
 # Import the Flask Framework
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, flash
 from flask.views import View
 from entities import *
 from utils import *
@@ -33,8 +33,7 @@ def home(newe_pages=None, update_pages=None):
 
 # wikipage renders a page in the wiki
 # Improvements:
-#   (1) improve regex handling to allow for trailing slash
-#   (2) There is alot of identical code in the WikiPage and EditPage handlers
+#   (1) There is alot of identical code in the WikiPage and EditPage handlers
 #       Reoragnize the code to prevent the retyping.
 @app.route('/wiki/<page_tag>')
 def wikipage(page_tag):
@@ -119,6 +118,9 @@ def history(page_tag, history=None):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login(username='', login_error=''):
+    if 'username' in session:
+        flash('You are already logged in. Log out to sign in as a different user.')
+        return redirect(url_for('welcome'))
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -145,6 +147,11 @@ class SignUp(View):
     def get_template_name(self):
         raise NotImplementedError()
 
+    # get_redirect_name is overwritten by child
+    # this is the view function to redirect to when a user is already logged in
+    def get_redirect_name(self):
+        raise NotImplementedError()
+
     def render_template(self, username='', email='', username_error='',
                         password_error='', verify_error='', email_error=''):
         return render_template(self.get_template_name(), username=username,
@@ -153,6 +160,9 @@ class SignUp(View):
                         verify_error=verify_error, email_error=email_error)
 
     def dispatch_request(self):
+        if 'username' in session:
+            flash('You are already logged in. Log out to register a new user.')
+            return redirect(url_for(self.get_redirect_name()))
         if request.method == 'POST':
             # have_error is True if any of the inputs do not pass validation
             have_error = False
@@ -198,6 +208,9 @@ class SignUp(View):
 class Register(SignUp):
     def get_template_name(self):
         return 'signup.html'
+
+    def get_redirect_name(self):
+        return 'welcome'
 
     def done(self, *a, **kw):
         # query User entities for the submitted username
