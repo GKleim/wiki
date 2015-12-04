@@ -54,6 +54,7 @@ def wikipage(page_tag):
                                 title=title)
     # if the there is not a matching page in the database, go to edit page
     else:
+        flash('The requested page does not exist.')
         return redirect(url_for('edit', page_tag=page_tag))
 
 
@@ -98,7 +99,7 @@ def edit(page_tag, content=None):
                 content = get_content(p).content
         if not content:
             content = 'The requested page does not exist.\n'
-            content += 'To create the page, enter in this text field and'
+            content += 'To create the page, enter text in this text area and'
             content += ' click "save".'
         title = underscore_to_space(page_tag)
         return render_template('editpage.html', page_tag=page_tag,
@@ -116,6 +117,9 @@ def edit(page_tag, content=None):
 @app.route('/history/<page_tag>')
 def history(page_tag, history=None):
         p = Page.by_tag(page_tag)
+        if not p:
+            flash('Since the requested page does not exist, no history is available.')
+            return redirect(url_for('edit', page_tag=page_tag))
         history = get_history(p)
         title = underscore_to_space(page_tag)
         return render_template('history.html', page_tag=page_tag, history=history,
