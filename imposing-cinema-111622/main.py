@@ -98,9 +98,9 @@ def edit(page_tag, content=None):
             else:
                 content = get_content(p).content
         if not content:
-            content = 'The requested page does not exist.\n'
-            content += 'To create the page, enter text in this text area and'
-            content += ' click "save".'
+            content = ('The requested page does not exist.\n'
+                       'To create the page, enter text in this text area '
+                       'and click "save".')
         title = underscore_to_space(page_tag)
         return render_template('editpage.html', page_tag=page_tag,
                                 content=content,
@@ -118,18 +118,22 @@ def edit(page_tag, content=None):
 def history(page_tag, history=None):
         p = Page.by_tag(page_tag)
         if not p:
-            flash('Since the requested page does not exist, no history is available.')
+            flash('Since the requested page does not exist, '
+                  'no history is available.')
             return redirect(url_for('edit', page_tag=page_tag))
-        history = get_history(p)
-        title = underscore_to_space(page_tag)
-        return render_template('history.html', page_tag=page_tag, history=history,
-                                title=title)
+        else:
+            history = get_history(p)
+            title = underscore_to_space(page_tag)
+            return render_template('history.html', page_tag=page_tag,
+                                    history=history,
+                                    title=title)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login(username='', login_error=''):
     if 'username' in session:
-        flash('You are already logged in. Log out to sign in as a different user.')
+        flash('You are already logged in. '
+              'Log out to sign in as a different user.')
         return redirect(url_for('welcome'))
     if request.method == 'POST':
         username = request.form['username']
